@@ -322,6 +322,14 @@ void write_default_logging_config_to_stream(std::ostream& out)
           "rotation_interval=60\n"
           "# how long will logs be kept (in days), if leave out default to 1\n"
           "rotation_limit=7\n\n"
+          "# declare an appender named \"khc\" that writes messages to khc.log\n"
+          "[log.file_appender.khc]\n"
+          "# filename can be absolute or relative to this config file\n"
+          "filename=logs/khc/khc.log\n"
+          "# Rotate log every ? minutes, if leave out default to 60\n"
+          "rotation_interval=14400\n"
+          "# how long will logs be kept (in days), if leave out default to 1\n"
+          "rotation_limit=36500\n\n"
           "# route any messages logged to the default logger to the \"stderr\" appender and\n"
           "# \"default\" appender we declared above, if they are info level or higher\n"
           "[logger.default]\n"
@@ -334,7 +342,11 @@ void write_default_logging_config_to_stream(std::ostream& out)
           "# route messages sent to the \"rpc\" logger to the \"rpc\" appender declared above\n"
           "[logger.rpc]\n"
           "level=error\n"
-          "appenders=rpc\n\n";
+          "appenders=rpc\n\n"
+          "# route messages sent to the \"khc\" logger to the \"khc\" appender declared above\n"
+          "[logger.khc]\n"
+          "level=all\n"
+          "appenders=khc\n\n";
 }
 
 fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::path& config_ini_filename)
