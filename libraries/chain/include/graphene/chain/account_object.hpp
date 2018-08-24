@@ -30,6 +30,21 @@ namespace graphene { namespace chain {
    class database;
 
    /**
+    * @brief the power of account
+    * @ingroup object
+    */
+   class account_power_object:public graphene::db::abstract_object<account_power_object>
+   {
+   public:
+      static const uint8_t space_id = implementation_ids;
+      static const uint8_t type_id  = impl_account_power_object_type;
+
+      account_id_type  owner;
+      uint8_t power_from;
+      share_type power_value;
+   };
+
+   /**
     * @class account_statistics_object
     * @ingroup object
     * @ingroup implementation
@@ -351,6 +366,24 @@ namespace graphene { namespace chain {
 
    struct by_name{};
 
+   struct by_account_power_from{};
+
+   typedef multi_index_container<
+        account_power_object,
+        indexed_by<
+            ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+            ordered_unique< tag<by_account_power_from>,
+                composite_key<
+                account_power_object,
+                member<account_power_object, account_id_type, &account_power_object::owner>,
+                member<account_power_object, uint8_t, &account_power_object::power_from>
+                >
+            >
+        >
+    > account_power_object_multi_index_type;
+
+   typedef generic_index<account_power_object,account_power_object_multi_index_type> account_power_index;
+
    /**
     * @ingroup object_index
     */
@@ -380,6 +413,10 @@ FC_REFLECT_DERIVED( graphene::chain::account_object,
                     (top_n_control_flags)
                     (allowed_assets)
                     )
+
+FC_REFLECT_DERIVED( graphene::chain::account_power_object,
+                    (graphene::db::object),
+                    (owner)(power_from)(power_value) )
 
 FC_REFLECT_DERIVED( graphene::chain::account_balance_object,
                     (graphene::db::object),

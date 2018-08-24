@@ -1511,6 +1511,13 @@ public:
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
 
+   share_type get_account_power(string ower_account,uint8_t power_from)
+   {
+       if( auto real_id = detail::maybe_id<account_id_type>(ower_account) )
+          return _remote_db->get_account_power(*real_id,power_from);
+       return _remote_db->get_account_power(get_account(ower_account).id, power_from);
+   }
+
    signed_transaction create_witness(string owner_account,
                                      string url,
                                      bool broadcast /* = false */)
@@ -3493,6 +3500,11 @@ signed_transaction wallet_api::create_witness(string owner_account,
                                               bool broadcast /* = false */)
 {
    return my->create_witness(owner_account, url, broadcast);
+}
+
+graphene::chain::share_type wallet_api::get_account_power(string ower_account,uint8_t power_from)
+{
+    return my->get_account_power(ower_account, power_from);
 }
 
 signed_transaction wallet_api::create_worker(

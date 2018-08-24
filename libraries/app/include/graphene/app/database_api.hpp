@@ -671,6 +671,14 @@ class database_api
        */
       vector<withdraw_permission_object> get_withdraw_permissions_by_recipient(account_id_type account, withdraw_permission_id_type start, uint32_t limit)const;
 
+      /** Get the power of the account
+       *   @param owner_account the name or id of the account which is creating the witness
+       *   @param power_from is the source of the power
+       *   @param is_locked get locked power or not
+       *   @returns the account power
+       */
+      share_type get_account_power(account_id_type account,uint8_t power_from);
+
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -720,6 +728,7 @@ FC_API(graphene::app::database_api,
    (lookup_account_names)
    (lookup_accounts)
    (get_account_count)
+   (get_account_power)
 
    // Balances
    (get_account_balances)

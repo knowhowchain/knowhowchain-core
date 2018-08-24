@@ -36,6 +36,7 @@
 #include <graphene/chain/special_authority_object.hpp>
 #include <graphene/chain/witness_object.hpp>
 #include <graphene/chain/worker_object.hpp>
+#include <graphene/khc/util.hpp>
 
 #include <algorithm>
 
@@ -213,6 +214,12 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
             obj.allowed_assets = o.extensions.value.buyback_options->markets;
             obj.allowed_assets->emplace( o.extensions.value.buyback_options->asset_to_buy );
          }
+         db().create<account_power_object>([&](account_power_object& s)
+         {
+             s.owner = obj.id;
+             s.power_from = graphene::khc::power_from_register;
+             s.power_value = 50*GRAPHENE_BLOCKCHAIN_PRECISION;
+         }).id;
    });
 
    /*

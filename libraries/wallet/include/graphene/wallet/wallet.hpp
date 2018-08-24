@@ -1350,6 +1350,14 @@ class wallet_api
                                         string url,
                                         bool broadcast = false);
 
+      /** Get the power of the account
+       *   @param owner_account the name or id of the account which is creating the witness
+       *   @param power_from is the source of the power
+       *   @param is_locked get locked power or not
+       *   @returns the account power
+       */
+      graphene::chain::share_type get_account_power(string ower_account,uint8_t power_from=0);
+
       /**
        * Update a witness object owned by the given account.
        *
@@ -1806,4 +1814,5 @@ FC_API( graphene::wallet::wallet_api,
         (blind_history)
         (receive_blind_transfer)
         (get_order_book)
+        (get_account_power)
       )
