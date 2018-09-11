@@ -410,6 +410,11 @@ static void get_relevant_accounts( const object* obj, flat_set<account_id_type>&
               FC_ASSERT( aobj != nullptr );
               accounts.insert( aobj->owner );
               break;
+          }case impl_account_locked_power_object_type:{
+              const auto& aobj = dynamic_cast<const account_locked_power_object*>(obj);
+              FC_ASSERT( aobj != nullptr );
+              accounts.insert( aobj->owner );
+              break;
           }
       }
    }

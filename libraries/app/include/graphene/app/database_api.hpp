@@ -674,7 +674,6 @@ class database_api
       /** Get the power of the account
        *   @param owner_account the name or id of the account which is creating the witness
        *   @param power_from is the source of the power
-       *   @param is_locked get locked power or not
        *   @returns the account power
        */
       share_type get_account_power(account_id_type account,uint8_t power_from);

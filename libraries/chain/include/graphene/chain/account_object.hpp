@@ -45,6 +45,22 @@ namespace graphene { namespace chain {
    };
 
    /**
+    * @brief the locked power of account
+    * @ingroup object
+    */
+   class account_locked_power_object:public graphene::db::abstract_object<account_locked_power_object>
+   {
+   public:
+      static const uint8_t space_id = implementation_ids;
+      static const uint8_t type_id  = impl_account_locked_power_object_type;
+
+      account_id_type  owner;
+      uint8_t power_from;
+      share_type power_value;
+      share_type unlock_height;
+   };
+
+   /**
     * @class account_statistics_object
     * @ingroup object
     * @ingroup implementation
@@ -364,8 +380,10 @@ namespace graphene { namespace chain {
     */
    typedef generic_index<account_balance_object, account_balance_object_multi_index_type> account_balance_index;
 
+   /**
+    * @ingroup object_index
+    */
    struct by_name{};
-
    struct by_account_power_from{};
 
    typedef multi_index_container<
@@ -383,6 +401,28 @@ namespace graphene { namespace chain {
     > account_power_object_multi_index_type;
 
    typedef generic_index<account_power_object,account_power_object_multi_index_type> account_power_index;
+
+
+   /**
+    * @ingroup object_index
+    */
+   struct by_account_locked_power_from{};
+
+   typedef multi_index_container<
+        account_locked_power_object,
+        indexed_by<
+            ordered_non_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+            ordered_non_unique< tag<by_account_locked_power_from>,
+                composite_key<
+                account_locked_power_object,
+                member<account_locked_power_object, account_id_type, &account_locked_power_object::owner>,
+                member<account_locked_power_object, uint8_t, &account_locked_power_object::power_from>
+                >
+            >
+        >
+    > account_locked_power_object_multi_index_type;
+
+   typedef generic_index<account_locked_power_object,account_locked_power_object_multi_index_type> account_locked_power_index;
 
    /**
     * @ingroup object_index
@@ -417,6 +457,10 @@ FC_REFLECT_DERIVED( graphene::chain::account_object,
 FC_REFLECT_DERIVED( graphene::chain::account_power_object,
                     (graphene::db::object),
                     (owner)(power_from)(power_value) )
+
+FC_REFLECT_DERIVED( graphene::chain::account_locked_power_object,
+                    (graphene::db::object),
+                    (owner)(power_from)(power_value)(unlock_height) )
 
 FC_REFLECT_DERIVED( graphene::chain::account_balance_object,
                     (graphene::db::object),

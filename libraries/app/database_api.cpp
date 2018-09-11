@@ -2166,7 +2166,23 @@ share_type database_api_impl::get_account_power(account_id_type account_id,uint8
        khc_wlog("invalid power_from:${power_from}",("power_from", power_from));
        FC_THROW("invalid power_from:${power_from}", ("power_from", power_from));
     }
-    share_type power_get = 0;
+    share_type power_locked = 0;
+    if(power_from==power_from_locked||power_from==power_from_all)
+    {
+        const account_locked_power_index& account_locked_index = _db.get_index_type<account_locked_power_index>();
+        auto locked_range = account_locked_index.indices().get<by_account_locked_power_from>().equal_range(boost::make_tuple(account_id));
+        dynamic_global_property_object global_property = get_dynamic_global_properties();
+        for (const account_locked_power_object& locked_power_object : boost::make_iterator_range(locked_range.first, locked_range.second))
+        {
+            if(locked_power_object.unlock_height > global_property.head_block_number)
+                power_locked += locked_power_object.power_value;
+        }
+    }
+
+    if(power_from==power_from_locked)
+        return power_locked;
+
+    share_type power_common = 0;
     const account_power_index& balance_index = _db.get_index_type<account_power_index>();
     auto range = balance_index.indices().get<by_account_power_from>().equal_range(boost::make_tuple(account_id));
     for (const account_power_object& power_object : boost::make_iterator_range(range.first, range.second))
@@ -2174,16 +2190,22 @@ share_type database_api_impl::get_account_power(account_id_type account_id,uint8
         //all power
         if(power_from==power_from_all)
         {
-            power_get += power_object.power_value;
+            power_common += power_object.power_value;
             continue;
         }
         if(power_from==power_object.power_from)
         {
-            power_get = power_object.power_value;
+            power_common = power_object.power_value;
             break;
         }
     }
-    return power_get;
+    if(power_common < power_locked)
+    {
+        khc_wlog("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
+        FC_THROW("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
+    }
+    share_type result = power_common - power_locked;
+    return result;
 }
 
 
