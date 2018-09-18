@@ -109,7 +109,7 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
 void asset_create_evaluator::pay_fee()
 {
    fee_is_odd = core_fee_paid.value & 1;
-   core_fee_paid -= core_fee_paid.value/2;
+   core_fee_paid -= core_fee_paid.value/2; //KHCTODO
    generic_evaluator::pay_fee();
 }
 
