@@ -676,7 +676,7 @@ class database_api
        *   @param power_from is the source of the power
        *   @returns the account power
        */
-      share_type get_account_power(account_id_type account,uint8_t power_from);
+      string get_account_power(account_id_type account,uint8_t power_from);
 
    private:
       std::shared_ptr< database_api_impl > my;

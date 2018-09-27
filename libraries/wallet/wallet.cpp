@@ -64,6 +64,7 @@
 #include <graphene/app/api.hpp>
 #include <graphene/chain/asset_object.hpp>
 #include <graphene/chain/protocol/fee_schedule.hpp>
+#include <graphene/chain/protocol/power.hpp>
 #include <graphene/chain/hardfork.hpp>
 #include <graphene/utilities/git_revision.hpp>
 #include <graphene/utilities/key_conversion.hpp>
@@ -72,6 +73,7 @@
 #include <graphene/wallet/api_documentation.hpp>
 #include <graphene/wallet/reflect_util.hpp>
 #include <graphene/debug_witness/debug_api.hpp>
+#include <graphene/khc/util.hpp>
 #include <fc/smart_ref_impl.hpp>
 
 #ifndef WIN32
@@ -1585,12 +1587,34 @@ public:
       FC_CAPTURE_AND_RETHROW( (owner_account) )
    }
 
-   share_type get_account_power(string ower_account,uint8_t power_from)
+   string get_account_power(string owner_account,uint8_t power_from)
    {
-       if( auto real_id = detail::maybe_id<account_id_type>(ower_account) )
+       if( auto real_id = detail::maybe_id<account_id_type>(owner_account) )
           return _remote_db->get_account_power(*real_id,power_from);
-       return _remote_db->get_account_power(get_account(ower_account).id, power_from);
+       return _remote_db->get_account_power(get_account(owner_account).id, power_from);
    }
+
+   signed_transaction convert_power(string owner_account,
+                                    string amount,
+                                    bool broadcast /*= false*/)
+   {try {
+       account_object from_account = get_account(owner_account);
+
+       power_convert_operation power_convert_op;
+       power_convert_op.account = from_account.id;
+       asset_object asset_obj = get_asset( GRAPHENE_SYMBOL );
+       power_convert_op.amount = asset_obj.amount_from_string(amount);
+       asset_object asset_khd = get_asset( CONVERT_POWER_REFER_ASSET );
+       power_convert_op.refer_amount = asset_khd.amount(0);
+
+       signed_transaction tx;
+       tx.operations.push_back(power_convert_op);
+       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
+       tx.validate();
+
+       return sign_transaction( tx, broadcast );
+    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
+
 
    signed_transaction create_witness(string owner_account,
                                      string url,
@@ -3593,9 +3617,14 @@ signed_transaction wallet_api::create_witness(string owner_account,
    return my->create_witness(owner_account, url, broadcast);
 }
 
-graphene::chain::share_type wallet_api::get_account_power(string ower_account,uint8_t power_from)
+string wallet_api::get_account_power(string owner_account,uint8_t power_from)
 {
-    return my->get_account_power(ower_account, power_from);
+    return my->get_account_power(owner_account, power_from);
+}
+
+signed_transaction wallet_api::convert_power(string owner_account, string amount, bool broadcast)
+{
+    return my->convert_power(owner_account,amount,broadcast);
 }
 
 signed_transaction wallet_api::create_worker(

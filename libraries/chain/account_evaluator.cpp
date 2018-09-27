@@ -214,33 +214,11 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
             obj.allowed_assets = o.extensions.value.buyback_options->markets;
             obj.allowed_assets->emplace( o.extensions.value.buyback_options->asset_to_buy );
          }
-         //XJTODO add locked power
          db().create<account_power_object>([&](account_power_object& s)
          {
              s.owner = obj.id;
              s.power_from = graphene::khc::power_from_register;
              s.power_value = 50*GRAPHENE_BLOCKCHAIN_PRECISION;
-         }).id;
-         db().create<account_locked_power_object>([&](account_locked_power_object& s)
-         {
-             s.owner = obj.id;
-             s.power_from = graphene::khc::power_from_locked;
-             s.power_value = 30*GRAPHENE_BLOCKCHAIN_PRECISION;
-             s.unlock_height = 100;
-         }).id;
-         db().create<account_locked_power_object>([&](account_locked_power_object& s)
-         {
-             s.owner = obj.id;
-             s.power_from = graphene::khc::power_from_locked;
-             s.power_value = 40*GRAPHENE_BLOCKCHAIN_PRECISION;
-             s.unlock_height = 5000;
-         }).id;
-         db().create<account_locked_power_object>([&](account_locked_power_object& s)
-         {
-             s.owner = obj.id;
-             s.power_from = graphene::khc::power_from_locked;
-             s.power_value = 20*GRAPHENE_BLOCKCHAIN_PRECISION;
-             s.unlock_height = 5000;
          }).id;
    });
 

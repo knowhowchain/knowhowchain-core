@@ -158,7 +158,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<withdraw_permission_object> get_withdraw_permissions_by_giver(account_id_type account, withdraw_permission_id_type start, uint32_t limit)const;
       vector<withdraw_permission_object> get_withdraw_permissions_by_recipient(account_id_type account, withdraw_permission_id_type start, uint32_t limit)const;
 
-      share_type get_account_power(account_id_type account,uint8_t power_from);
+      string get_account_power(account_id_type account,uint8_t power_from);
 
    //private:
       static string price_to_string( const price& _price, const asset_object& _base, const asset_object& _quote );
@@ -2138,7 +2138,7 @@ vector<withdraw_permission_object> database_api::get_withdraw_permissions_by_rec
    return my->get_withdraw_permissions_by_recipient( account, start, limit );
 }
 
-share_type database_api::get_account_power(account_id_type account,uint8_t power_from)
+string database_api::get_account_power(account_id_type account,uint8_t power_from)
 {
     return my->get_account_power(account,power_from);
 }
@@ -2159,7 +2159,7 @@ vector<withdraw_permission_object> database_api_impl::get_withdraw_permissions_b
    return result;
 }
 
-share_type database_api_impl::get_account_power(account_id_type account_id,uint8_t power_from)
+string database_api_impl::get_account_power(account_id_type account_id,uint8_t power_from)
 {
     if(power_from<power_from_all||power_from>=power_from_max)
     {
@@ -2180,7 +2180,7 @@ share_type database_api_impl::get_account_power(account_id_type account_id,uint8
     }
 
     if(power_from==power_from_locked)
-        return power_locked;
+        return khc_amount_to_string(power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
 
     share_type power_common = 0;
     const account_power_index& balance_index = _db.get_index_type<account_power_index>();
@@ -2204,8 +2204,8 @@ share_type database_api_impl::get_account_power(account_id_type account_id,uint8
         khc_wlog("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
         FC_THROW("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
     }
-    share_type result = power_common - power_locked;
-    return result;
+
+    return khc_amount_to_string(power_common - power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
 }
 
 

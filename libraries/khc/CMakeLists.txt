@@ -1,6 +1,6 @@
 file(GLOB HEADERS "include/graphene/khc/*.hpp")
 
-add_library( graphene_khc 
+add_library( graphene_khc util.cpp
              ${HEADERS}
            )
 

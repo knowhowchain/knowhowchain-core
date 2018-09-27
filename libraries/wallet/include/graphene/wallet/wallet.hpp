@@ -1375,7 +1375,14 @@ class wallet_api
        *   @param power_from is the source of the power
        *   @returns the account power
        */
-      graphene::chain::share_type get_account_power(string ower_account,uint8_t power_from=0);
+      string get_account_power(string owner_account,uint8_t power_from=0);
+
+      /** Convert core asset to power
+       *   @param owner_account the name or id of the account which is converting the power
+       *   @param amount is the amount of the core asset
+       *   @returns the signed transaction registering a witness
+       */
+      signed_transaction convert_power(string owner_account,string amount,bool broadcast = false);
 
       /**
        * Update a witness object owned by the given account.
@@ -1834,5 +1841,6 @@ FC_API( graphene::wallet::wallet_api,
         (receive_blind_transfer)
         (get_order_book)
         (get_account_power)
+        (convert_power)
         //(update_account_key)
       )
