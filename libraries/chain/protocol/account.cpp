@@ -26,32 +26,9 @@
 namespace graphene { namespace chain {
 
 /**
- * Names must comply with the following grammar (RFC 1035):
- * <domain> ::= <subdomain> | " "
- * <subdomain> ::= <label> | <subdomain> "." <label>
- * <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]
- * <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
- * <let-dig-hyp> ::= <let-dig> | "-"
- * <let-dig> ::= <letter> | <digit>
- *
- * Which is equivalent to the following:
- *
- * <domain> ::= <subdomain> | " "
- * <subdomain> ::= <label> ("." <label>)*
- * <label> ::= <letter> [ [ <let-dig-hyp>+ ] <let-dig> ]
- * <let-dig-hyp> ::= <let-dig> | "-"
- * <let-dig> ::= <letter> | <digit>
- *
- * I.e. a valid name consists of a dot-separated sequence
- * of one or more labels consisting of the following rules:
- *
- * - Each label is three characters or more
- * - Each label begins with a letter
- * - Each label ends with a letter or digit
- * - Each label contains only letters, digits or hyphens
- *
  * In addition we require the following:
- *
+ * - The name must consist of numbers and letters
+ * - The name must start with a letter
  * - All letters are lowercase
  * - Length is between (inclusive) GRAPHENE_MIN_ACCOUNT_NAME_LENGTH and GRAPHENE_MAX_ACCOUNT_NAME_LENGTH
  */
@@ -61,27 +38,19 @@ bool is_valid_name( const string& name )
 
     if( len < GRAPHENE_MIN_ACCOUNT_NAME_LENGTH )
     {
-          ilog( ".");
+        khc_elog("account name must two letters at least, [name]: ${name}",("name",name));
         return false;
     }
 
     if( len > GRAPHENE_MAX_ACCOUNT_NAME_LENGTH )
     {
-          ilog( ".");
+        khc_elog("account name must less than twenty letters, [name]: ${name}",("name",name));
         return false;
     }
 
     size_t begin = 0;
     while( true )
     {
-       size_t end = name.find_first_of( '.', begin );
-       if( end == std::string::npos )
-          end = len;
-       if( (end - begin) < GRAPHENE_MIN_ACCOUNT_NAME_LENGTH )
-       {
-          idump( (name) (end)(len)(begin)(GRAPHENE_MAX_ACCOUNT_NAME_LENGTH) );
-          return false;
-       }
        switch( name[begin] )
        {
           case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h':
@@ -90,23 +59,10 @@ bool is_valid_name( const string& name )
           case 'y': case 'z':
              break;
           default:
-          ilog( ".");
-             return false;
+          khc_elog("account name must start with a letter, [name]: ${name}",("name",name));
+          return false;
        }
-       switch( name[end-1] )
-       {
-          case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h':
-          case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p':
-          case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x':
-          case 'y': case 'z':
-          case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7':
-          case '8': case '9':
-             break;
-          default:
-          ilog( ".");
-             return false;
-       }
-       for( size_t i=begin+1; i<end-1; i++ )
+       for( size_t i=begin+1; i<len; i++ )
        {
           switch( name[i] )
           {
@@ -116,19 +72,31 @@ bool is_valid_name( const string& name )
              case 'y': case 'z':
              case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7':
              case '8': case '9':
-             case '-':
                 break;
              default:
-          ilog( ".");
+                khc_elog("The account name must consist of numbers and letters, [name]: ${name}",("name",name));
                 return false;
           }
        }
-       if( end == len )
-          break;
-       begin = end+1;
+       break;
     }
     return true;
 } FC_CAPTURE_AND_RETHROW( (name) ) }
+
+/*
+ * It use in rpc create_account_with_private_key
+ * Input para brain_key must in lenth between 12 and 70
+ */
+bool is_valid_brain_key( const string& key)
+{
+    try{
+        const size_t len = key.size();
+        if (len < 12 || len >70)
+        {
+            return false;
+        }
+        return true;
+    }FC_CAPTURE_AND_RETHROW( (key) ) }
 
 bool is_cheap_name( const string& n )
 {

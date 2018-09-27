@@ -786,6 +786,26 @@ class wallet_api
                                                        string referrer_account,
                                                        bool broadcast = false);
 
+      /** Update an exist account's public key on the blockchain.
+       *
+       * @param owner the key of the account owner to be modified
+       * @param active the key of the account active to be modified
+       * @param memo_key the key of the account memo_key to be modified
+       * @param account_name the name of the account, must be unique on the blockchain.  Shorter names
+       *                     are more expensive to register; the rules are still in flux, but in general
+       *                     names of more than 8 characters with at least one digit will be cheap.
+       * @param action add to add the new key, remove to remove de exist key
+       * @param broadcast true to broadcast the transaction on the network
+       * @returns the signed transaction registering the account
+       */
+      signed_transaction update_account_key(string account_name,
+                                            string owner,
+                                            string active,
+                                            string new_memo_key,
+                                            string action,
+                                            bool broadcast = false);
+
+
       /** Transfer an amount from one account to another.
        * @param from the name or id of the account sending the funds
        * @param to the name or id of the account receiving the funds
@@ -1814,4 +1834,5 @@ FC_API( graphene::wallet::wallet_api,
         (receive_blind_transfer)
         (get_order_book)
         (get_account_power)
+        //(update_account_key)
       )

@@ -1117,12 +1117,86 @@ public:
                                                     bool broadcast = false,
                                                     bool save_wallet = true)
    { try {
+      FC_ASSERT( is_valid_name(account_name) );
+//      FC_ASSERT( is_valid_brain_key(brain_key) );
       FC_ASSERT( !self.is_locked() );
       string normalized_brain_key = normalize_brain_key( brain_key );
       // TODO:  scan blockchain for accounts that exist with same brain key
       fc::ecc::private_key owner_privkey = derive_private_key( normalized_brain_key, 0 );
       return create_account_with_private_key(owner_privkey, account_name, registrar_account, referrer_account, broadcast, save_wallet);
    } FC_CAPTURE_AND_RETHROW( (account_name)(registrar_account)(referrer_account) ) }
+
+
+   signed_transaction update_account_key(string account_name,
+                                        public_key_type owner,
+                                        public_key_type active,
+                                        public_key_type new_memo_key,
+                                        string action,
+                                        bool broadcast = false)
+   {
+       try {
+           FC_ASSERT( !self.is_locked() );
+           FC_ASSERT( action == "add" || action == "remove" );
+           FC_ASSERT( owner.key_data.size()>0 || active.key_data.size()>0 || new_memo_key.key_data.size()>0 );
+           account_object change_account = get_account(account_name);
+           account_update_operation account_update_op;
+           account_update_op.account = change_account.id;
+           if (action == "add")
+           {
+               if (owner.key_data.size()>0){
+                   auto new_owner = authority(change_account.owner);
+                   new_owner.add_authority(owner,1);
+                   account_update_op.owner = new_owner;
+                    }
+               if (active.key_data.size()>0){
+                   auto new_active = authority(change_account.active);
+                   new_active.add_authority(active,1);
+                   account_update_op.active = new_active;
+                    }
+               if (new_memo_key.key_data.size()>0){
+                   auto new_op = change_account.options;
+                   new_op.memo_key = new_memo_key;
+                   account_update_op.new_options = new_op;
+                   }
+           }else{
+                if (owner.key_data.size()>0){
+                        auto new_owner = authority(change_account.owner);
+                        new_owner.key_auths.erase(owner);
+                        account_update_op.owner = new_owner ;
+                  }
+                if (active.key_data.size()>0){
+                       auto new_active = authority(change_account.active);
+                       new_active.key_auths.erase(active);
+                       account_update_op.active = new_active;
+                 }
+           }
+           signed_transaction tx;
+
+           tx.operations.push_back( account_update_op );
+
+           set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
+
+           auto dyn_props = get_dynamic_global_properties();
+           tx.set_reference_block( dyn_props.head_block_id );
+           tx.set_expiration( dyn_props.time + fc::seconds(30) );
+           tx.validate();
+
+           vector<public_key_type> paying_keys = change_account.owner.get_keys();
+           for( public_key_type& key : paying_keys )
+           {
+              auto it = _keys.find(key);
+              if( it != _keys.end() )
+              {
+                 fc::optional< fc::ecc::private_key > privkey = wif_to_key( it->second );
+                 FC_ASSERT( privkey.valid(), "Malformed private key in _keys" );
+                 tx.sign( *privkey, _chain_id );
+              }
+           }
+
+           if( broadcast )
+              _remote_net_broadcast->broadcast_transaction( tx );
+           return tx;
+       }FC_CAPTURE_AND_RETHROW( (owner)(active)(new_memo_key)(account_name)(action) ) }
 
 
    signed_transaction create_asset(string issuer,
@@ -3356,6 +3430,23 @@ signed_transaction wallet_api::create_account_with_brain_key(string brain_key, s
             referrer_account, broadcast
             );
 }
+
+signed_transaction wallet_api::update_account_key(string account_name,
+                                                 string owner,
+                                                 string active,
+                                                 string new_memo_key,
+                                                 string action,
+                                                 bool broadcast)
+{
+    public_key_type owner_key;
+    public_key_type active_key;
+    public_key_type memo_key;
+    if (owner.size() > 0){owner_key = public_key_type(owner);};
+    if (active.size() > 0){active_key = public_key_type(active);};
+    if (new_memo_key.size() > 0){memo_key = public_key_type(new_memo_key);};
+    return my->update_account_key(account_name,owner_key,active_key,memo_key,action,broadcast);
+}
+
 signed_transaction wallet_api::issue_asset(string to_account, string amount, string symbol,
                                            string memo, bool broadcast)
 {
@@ -3750,6 +3841,17 @@ string wallet_api::gethelp(const string& method)const
       ss << "\nExample value of BITASSET_OPTIONS: \n";
       ss << fc::json::to_pretty_string( graphene::chain::bitasset_options() );
       ss << "\nBITASSET_OPTIONS may be null\n";
+   }
+   else if( method == "update_account_key" )
+   {
+      ss << "usage: update_account_key OWNER ACTIVE MEMO_KEY ACCOUNT_NAME ACTION BROADCAST\n\n";
+      ss << "OWNER: the public key of account owner which need change\n\n";
+      ss << "ACTIVE: the public key of account active which need change\n\n";
+      ss << "MEMO_KEY: the public key of account options memo_key which need change\n\n";
+      ss << "ACCOUNT_NAME: the account name need change\n\n";
+      ss << "ACTION: add for add key,remove for remove key \n\n";
+      ss << "OWNER ACTIVE MEMO_KEY cann't all be empty\n";
+      ss << "example: update_account_key \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"nathan\" \"add\" true\n";
    }
    else
    {

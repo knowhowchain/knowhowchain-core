@@ -33,6 +33,7 @@ namespace graphene { namespace chain {
 
    bool is_valid_name( const string& s );
    bool is_cheap_name( const string& n );
+   bool is_valid_brain_key( const string& key);
 
    /// These are the fields which can be updated by the active authority.
    struct account_options
