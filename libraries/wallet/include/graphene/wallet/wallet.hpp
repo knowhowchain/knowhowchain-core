@@ -698,6 +698,12 @@ class wallet_api
        */
       bool import_key(string account_name_or_id, string wif_key);
 
+      /** Return a account_id_type by account private_key
+       *  @wif_key account private key
+       *  @returns account_id_type
+       */
+      account_id_type get_account_id_by_private_key(string wif_key);
+
       map<string, bool> import_accounts( string filename, string password );
 
       bool import_account_keys( string filename, string password, string src_account_name, string dest_account_name );
@@ -1843,4 +1849,5 @@ FC_API( graphene::wallet::wallet_api,
         (get_account_power)
         (convert_power)
         //(update_account_key)
+        (get_account_id_by_private_key)
       )

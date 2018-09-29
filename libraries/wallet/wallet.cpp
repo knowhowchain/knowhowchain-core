@@ -697,6 +697,20 @@ public:
       return all_keys_for_account.find(wif_pub_key) != all_keys_for_account.end();
    }
 
+   account_id_type get_account_id_by_private_key(string wif_key)
+   {
+       fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
+       if (!optional_private_key)
+          FC_THROW("Invalid private key");
+       fc::ecc::public_key pub_key = optional_private_key->get_public_key();
+       public_key_type pub_key_type(pub_key);
+       vector<public_key_type> key;
+       key.push_back(pub_key_type);
+       vector<vector<account_id_type>> v_account_id =  _remote_db->get_key_references(key);
+       FC_ASSERT(v_account_id.size()>0 && (*v_account_id.begin()).size()>0);
+       return *(v_account_id.begin()->begin());
+   }
+
    vector< signed_transaction > import_balance( string name_or_id, const vector<string>& wif_keys, bool broadcast );
 
    bool load_wallet_file(string wallet_filename = "")
@@ -3297,6 +3311,10 @@ bool wallet_api::import_key(string account_name_or_id, string wif_key)
    }
    return false;
 }
+account_id_type wallet_api::get_account_id_by_private_key(string wif_key)
+{
+    return my->get_account_id_by_private_key(wif_key);
+}
 
 map<string, bool> wallet_api::import_accounts( string filename, string password )
 {
@@ -3881,6 +3899,11 @@ string wallet_api::gethelp(const string& method)const
       ss << "ACTION: add for add key,remove for remove key \n\n";
       ss << "OWNER ACTIVE MEMO_KEY cann't all be empty\n";
       ss << "example: update_account_key \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"CORE6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV\" \"nathan\" \"add\" true\n";
+   }
+   else  if( method == "get_account_id_by_private_key" )
+   {
+      ss << "usage: get_account_id_by_private_key  WIF_PRIVATE_KEY\n\n";
+      ss << "example: get_account_id_by_private_key  5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3\n";
    }
    else
    {
