@@ -55,8 +55,8 @@ object_database/*
 *.pyc
 *.pyo
 
-knowhowchain.pro
-knowhowchain.pro.user
+*.pro.user
+*.vscode
 
 
 

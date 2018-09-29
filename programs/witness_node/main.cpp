@@ -250,7 +250,7 @@ int main(int argc, char** argv) {
 
       node->startup();
       node->startup_plugins();
-
+      
       fc::promise<int>::ptr exit_promise = new fc::promise<int>("UNIX Signal Handler");
 
       fc::set_signal_handler([&exit_promise](int signal) {
@@ -357,76 +357,138 @@ fc::optional<fc::logging_config> load_logging_config_from_ini_file(const fc::pat
       bool found_logging_config = false;
 
       boost::property_tree::ptree config_ini_tree;
-      boost::property_tree::ini_parser::read_ini(config_ini_filename.preferred_string().c_str(), config_ini_tree);
-      for (const auto& section : config_ini_tree)
-      {
-         const std::string& section_name = section.first;
-         const boost::property_tree::ptree& section_tree = section.second;
+      try {
+          boost::property_tree::ini_parser::read_ini(config_ini_filename.preferred_string().c_str(), config_ini_tree);
+          for (const auto& section : config_ini_tree)
+          {
+              const std::string& section_name = section.first;
+              const boost::property_tree::ptree& section_tree = section.second;
 
-         const std::string console_appender_section_prefix = "log.console_appender.";
-         const std::string file_appender_section_prefix = "log.file_appender.";
-         const std::string logger_section_prefix = "logger.";
+              const std::string console_appender_section_prefix = "log.console_appender.";
+              const std::string file_appender_section_prefix = "log.file_appender.";
+              const std::string logger_section_prefix = "logger.";
 
-         if (boost::starts_with(section_name, console_appender_section_prefix))
-         {
-            std::string console_appender_name = section_name.substr(console_appender_section_prefix.length());
-            std::string stream_name = section_tree.get<std::string>("stream");
+              if (boost::starts_with(section_name, console_appender_section_prefix))
+              {
+                  std::string console_appender_name = section_name.substr(console_appender_section_prefix.length());
+                  std::string stream_name = section_tree.get<std::string>("stream");
 
-            // construct a default console appender config here
-            // stdout/stderr will be taken from ini file, everything else hard-coded here
-            fc::console_appender::config console_appender_config;
-            console_appender_config.level_colors.emplace_back(
-               fc::console_appender::level_color(fc::log_level::debug, 
-                                                 fc::console_appender::color::green));
-            console_appender_config.level_colors.emplace_back(
-               fc::console_appender::level_color(fc::log_level::warn, 
-                                                 fc::console_appender::color::brown));
-            console_appender_config.level_colors.emplace_back(
-               fc::console_appender::level_color(fc::log_level::error, 
-                                                 fc::console_appender::color::cyan));
-            console_appender_config.stream = fc::variant(stream_name).as<fc::console_appender::stream::type>(GRAPHENE_MAX_NESTED_OBJECTS);
-            logging_config.appenders.push_back(fc::appender_config(console_appender_name, "console", fc::variant(console_appender_config, GRAPHENE_MAX_NESTED_OBJECTS)));
-            found_logging_config = true;
-         }
-         else if (boost::starts_with(section_name, file_appender_section_prefix))
-         {
-            std::string file_appender_name = section_name.substr(file_appender_section_prefix.length());
-            fc::path file_name = section_tree.get<std::string>("filename");
-            if (file_name.is_relative())
-               file_name = fc::absolute(config_ini_filename).parent_path() / file_name;
+                  // construct a default console appender config here
+                  // stdout/stderr will be taken from ini file, everything else hard-coded here
+                  fc::console_appender::config console_appender_config;
+                  console_appender_config.level_colors.emplace_back(
+                              fc::console_appender::level_color(fc::log_level::debug,
+                                                                fc::console_appender::color::green));
+                  console_appender_config.level_colors.emplace_back(
+                              fc::console_appender::level_color(fc::log_level::warn,
+                                                                fc::console_appender::color::brown));
+                  console_appender_config.level_colors.emplace_back(
+                              fc::console_appender::level_color(fc::log_level::error,
+                                                                fc::console_appender::color::cyan));
+                  console_appender_config.stream = fc::variant(stream_name).as<fc::console_appender::stream::type>(GRAPHENE_MAX_NESTED_OBJECTS);
+                  logging_config.appenders.push_back(fc::appender_config(console_appender_name, "console", fc::variant(console_appender_config, GRAPHENE_MAX_NESTED_OBJECTS)));
+                  found_logging_config = true;
+              }
+              else if (boost::starts_with(section_name, file_appender_section_prefix))
+              {
+                  std::string file_appender_name = section_name.substr(file_appender_section_prefix.length());
+                  fc::path file_name = section_tree.get<std::string>("filename");
+                  if (file_name.is_relative())
+                      file_name = fc::absolute(config_ini_filename).parent_path() / file_name;
 
-            int interval = section_tree.get_optional<int>("rotation_interval").get_value_or(60);
-            int limit = section_tree.get_optional<int>("rotation_limit").get_value_or(1);
+                  int interval = section_tree.get_optional<int>("rotation_interval").get_value_or(60);
+                  int limit = section_tree.get_optional<int>("rotation_limit").get_value_or(1);
 
-            // construct a default file appender config here
-            // filename will be taken from ini file, everything else hard-coded here
-            fc::file_appender::config file_appender_config;
-            file_appender_config.filename = file_name;
-            file_appender_config.flush = true;
-            file_appender_config.rotate = true;
-            file_appender_config.rotation_interval = fc::minutes(interval);
-            file_appender_config.rotation_limit = fc::days(limit);
-            logging_config.appenders.push_back(fc::appender_config(file_appender_name, "file", fc::variant(file_appender_config, GRAPHENE_MAX_NESTED_OBJECTS)));
-            found_logging_config = true;
-         }
-         else if (boost::starts_with(section_name, logger_section_prefix))
-         {
-            std::string logger_name = section_name.substr(logger_section_prefix.length());
-            std::string level_string = section_tree.get<std::string>("level");
-            std::string appenders_string = section_tree.get<std::string>("appenders");
-            fc::logger_config logger_config(logger_name);
-            logger_config.level = fc::variant(level_string).as<fc::log_level>(5);
-            boost::split(logger_config.appenders, appenders_string, 
-                         boost::is_any_of(" ,"), 
-                         boost::token_compress_on);
-            logging_config.loggers.push_back(logger_config);
-            found_logging_config = true;
-         }
+                  // construct a default file appender config here
+                  // filename will be taken from ini file, everything else hard-coded here
+                  fc::file_appender::config file_appender_config;
+                  file_appender_config.filename = file_name;
+                  file_appender_config.flush = true;
+                  file_appender_config.rotate = true;
+                  file_appender_config.rotation_interval = fc::minutes(interval);
+                  file_appender_config.rotation_limit = fc::days(limit);
+                  logging_config.appenders.push_back(fc::appender_config(file_appender_name, "file", fc::variant(file_appender_config, GRAPHENE_MAX_NESTED_OBJECTS)));
+                  found_logging_config = true;
+              }
+              else if (boost::starts_with(section_name, logger_section_prefix))
+              {
+                  std::string logger_name = section_name.substr(logger_section_prefix.length());
+                  std::string level_string = section_tree.get<std::string>("level");
+                  std::string appenders_string = section_tree.get<std::string>("appenders");
+                  fc::logger_config logger_config(logger_name);
+                  logger_config.level = fc::variant(level_string).as<fc::log_level>(5);
+                  boost::split(logger_config.appenders, appenders_string,
+                               boost::is_any_of(" ,"),
+                               boost::token_compress_on);
+                  logging_config.loggers.push_back(logger_config);
+                  found_logging_config = true;
+              }
+          }
+      } catch (...) {//for KHC test
+          //console_appender
+          std::string console_appender_name = "stderr";
+          std::string stream_name = "std_error";
+
+          // construct a default console appender config here
+          // stdout/stderr will be taken from ini file, everything else hard-coded here
+          fc::console_appender::config console_appender_config;
+          console_appender_config.level_colors.emplace_back(
+                      fc::console_appender::level_color(fc::log_level::debug,
+                                                        fc::console_appender::color::green));
+          console_appender_config.level_colors.emplace_back(
+                      fc::console_appender::level_color(fc::log_level::warn,
+                                                        fc::console_appender::color::brown));
+          console_appender_config.level_colors.emplace_back(
+                      fc::console_appender::level_color(fc::log_level::error,
+                                                        fc::console_appender::color::cyan));
+          console_appender_config.stream = fc::variant(stream_name).as<fc::console_appender::stream::type>(GRAPHENE_MAX_NESTED_OBJECTS);
+          logging_config.appenders.push_back(fc::appender_config(console_appender_name, "console",
+                                                                 fc::variant(console_appender_config, GRAPHENE_MAX_NESTED_OBJECTS)));
+
+
+          //file_appender
+          std::vector<std::string> file_appender_names{"default", "p2p", "rpc", "khc"};
+          std::vector<fc::path> file_names{"logs/default/default.log", "logs/p2p/p2p.log", "logs/rpc/rpc.log", "logs/khc/khc.log"};
+          //          std::string file_appender_name = "khc";
+          //          fc::path file_name("log/defult/khc.log");
+          for(uint i = 0; i<file_names.size(); ++i)
+          {
+              if (file_names[i].is_relative())
+                  file_names[i] = fc::absolute(config_ini_filename).parent_path() / file_names[i];
+
+              int interval = 14400;
+              int limit = 36500;
+
+              // construct a default file appender config here
+              // filename will be taken from ini file, everything else hard-coded here
+              fc::file_appender::config file_appender_config;
+              file_appender_config.filename = file_names[i];
+              file_appender_config.flush = true;
+              file_appender_config.rotate = true;
+              file_appender_config.rotation_interval = fc::minutes(interval);
+              file_appender_config.rotation_limit = fc::days(limit);
+              logging_config.appenders.push_back(fc::appender_config(file_appender_names[i], "file", fc::variant(file_appender_config, GRAPHENE_MAX_NESTED_OBJECTS)));
+          }
+
+          //logger
+          std::vector<std::string> logger_names = {"default", "p2p", "rpc", "khc"};
+          std::vector<std::string> level_strings = {"info", "warn", "error", "all"};
+          std::vector<std::string> appenders_strings = {"stderr,default", "p2p", "rpc", "khc"};
+          for(uint i = 0; i<logger_names.size(); ++i)
+          {
+              fc::logger_config logger_config(logger_names[i]);
+              logger_config.level = fc::variant(level_strings[i]).as<fc::log_level>(5);
+              boost::split(logger_config.appenders, appenders_strings[i],
+                           boost::is_any_of(" ,"),
+                           boost::token_compress_on);
+              logging_config.loggers.push_back(logger_config);
+          }
+          return logging_config;
       }
       if (found_logging_config)
-         return logging_config;
+          return logging_config;
       else
-         return fc::optional<fc::logging_config>();
+          return fc::optional<fc::logging_config>();
    }
    FC_RETHROW_EXCEPTIONS(warn, "")
 }
