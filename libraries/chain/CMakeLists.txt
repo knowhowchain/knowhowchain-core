@@ -58,7 +58,7 @@ add_library( graphene_chain
              protocol/fee_schedule.cpp
              protocol/confidential.cpp
              protocol/vote.cpp
-	     protocol/power.cpp
+             protocol/power.cpp
 
              genesis_state.cpp
              get_config.cpp
@@ -68,7 +68,7 @@ add_library( graphene_chain
              evaluator.cpp
              balance_evaluator.cpp
              account_evaluator.cpp
-	     power_evaluator.cpp
+             power_evaluator.cpp
              assert_evaluator.cpp
              witness_evaluator.cpp
              committee_member_evaluator.cpp

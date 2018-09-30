@@ -29,6 +29,9 @@
 #include <graphene/chain/exceptions.hpp>
 #include <graphene/chain/hardfork.hpp>
 #include <graphene/chain/is_authorized_asset.hpp>
+#include <graphene/khc/util.hpp>
+#include <graphene/khc/config.hpp>
+#include <a.out.h>
 
 #include <functional>
 
@@ -51,6 +54,11 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    for( auto id : op.common_options.blacklist_authorities )
       d.get_object(id);
 
+   FC_ASSERT(!(op.bitasset_opts.valid() && op.project_asset_opts.valid()), "bitasset and projasset cannot be set at the same time.");
+   if (op.project_asset_opts.valid())
+   {
+       KHC_WASSERT(khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first >= *op.power, "Power is not enough!");
+   }
    auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );
    FC_ASSERT( asset_symbol_itr == asset_indx.end() );
@@ -141,12 +149,26 @@ object_id_type asset_create_evaluator::do_apply( const asset_create_operation& o
             a.asset_id = next_asset_id;
          }).id;
 
+   if (op.project_asset_opts.valid())
+   {
+       db().create<account_locked_power_object>([&](account_locked_power_object& s)
+       {
+           s.owner = op.issuer;
+           s.power_from = graphene::khc::power_from_locked;
+           s.power_value = *op.power;
+           const auto& global_properties = db().get_global_properties();
+           s.unlock_height = db().head_block_num() + (op.project_asset_opts->project_cycle * 30 * 86400) /
+                   global_properties.parameters.block_interval;
+       });
+   }
    const asset_object& new_asset =
      db().create<asset_object>( [&]( asset_object& a ) {
          a.issuer = op.issuer;
          a.symbol = op.symbol;
          a.precision = op.precision;
          a.options = op.common_options;
+         if (op.project_asset_opts.valid())
+            a.proj_options = *op.project_asset_opts;
          if( a.options.core_exchange_rate.base.asset_id.instance.value == 0 )
             a.options.core_exchange_rate.quote.asset_id = next_asset_id;
          else

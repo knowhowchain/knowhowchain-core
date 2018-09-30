@@ -102,7 +102,7 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       vector<optional<asset_object>> get_assets(const vector<asset_id_type>& asset_ids)const;
       vector<asset_object>           list_assets(const string& lower_bound_symbol, uint32_t limit)const;
       vector<optional<asset_object>> lookup_asset_symbols(const vector<string>& symbols_or_ids)const;
-
+      vector<optional<asset_object>> lookup_asset_by_project_name(const vector<string>& project_names)const;
       // Markets / feeds
       vector<limit_order_object>         get_limit_orders(asset_id_type a, asset_id_type b, uint32_t limit)const;
       vector<call_order_object>          get_call_orders(asset_id_type a, uint32_t limit)const;
@@ -987,6 +987,28 @@ vector<asset_object> database_api_impl::list_assets(const string& lower_bound_sy
 vector<optional<asset_object>> database_api::lookup_asset_symbols(const vector<string>& symbols_or_ids)const
 {
    return my->lookup_asset_symbols( symbols_or_ids );
+}
+
+vector<optional<asset_object>> database_api::lookup_asset_by_project_name(const vector<string>& project_names)const
+{
+   return my->lookup_asset_by_project_name( project_names );
+}
+
+vector<optional<asset_object>> database_api_impl::lookup_asset_by_project_name(const vector<string>& project_names)const
+{
+   const auto& assets_by_projasset_name = _db.get_index_type<asset_index>().indices().get<by_projasset_name>();
+   vector<optional<asset_object> > result;
+   result.reserve(project_names.size());
+   std::transform(project_names.begin(), project_names.end(), std::back_inserter(result),
+                  [this, &assets_by_projasset_name](const string& project_name) -> optional<asset_object> {
+      if( !project_name.empty() )
+      {
+         return optional<asset_object>();
+      }
+      auto itr = assets_by_projasset_name.find(project_name);
+      return itr == assets_by_projasset_name.end()? optional<asset_object>() : *itr;
+   });
+   return result;
 }
 
 vector<optional<asset_object>> database_api_impl::lookup_asset_symbols(const vector<string>& symbols_or_ids)const

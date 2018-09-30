@@ -620,6 +620,18 @@ public:
          return rec;
       }
    }
+   optional<asset_object> find_asset_by_project_name(string project_name)const
+   {
+      FC_ASSERT( project_name.size() > 0 );
+
+      auto rec = _remote_db->lookup_asset_by_project_name({project_name}).front();
+      if( rec )
+      {
+          if( rec->proj_options.name != project_name )
+              return optional<asset_object>();
+      }
+      return rec;
+   }
    asset_object get_asset(asset_id_type id)const
    {
       auto opt = find_asset(id);
@@ -1220,10 +1232,24 @@ public:
                                    uint8_t precision,
                                    asset_options common,
                                    fc::optional<bitasset_options> bitasset_opts,
+                                   fc::optional<project_asset_options> project_asset_opts,
                                    bool broadcast = false)
    { try {
       account_object issuer_account = get_account( issuer );
       FC_ASSERT(!find_asset(symbol).valid(), "Asset with that symbol already exists!");
+      fc::optional<share_type> power;
+      if (project_asset_opts.valid())
+      {
+          FC_ASSERT(project_asset_opts->name.size() != 0, "Asset must have a project name.");
+          project_asset_opts->validate();
+
+          FC_ASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "Asset with that project name already exists!");
+          power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
+          const auto required_power_range = khc::power_required_for_finacing(project_asset_opts->minimum_financing_amount);
+          FC_ASSERT( required_power_range.first < *power, "Power is not enough!");
+          if (*power > required_power_range.second && required_power_range.second != 0)
+              power = required_power_range.second;
+      }
 
       asset_create_operation create_op;
       create_op.issuer = issuer_account.id;
@@ -1231,6 +1257,8 @@ public:
       create_op.precision = precision;
       create_op.common_options = common;
       create_op.bitasset_opts = bitasset_opts;
+      create_op.project_asset_opts = project_asset_opts;
+      create_op.power = power;
 
       signed_transaction tx;
       tx.operations.push_back( create_op );
@@ -2644,7 +2672,7 @@ public:
       opts.flags &= ~(white_list | disable_force_settle | global_settle);
       opts.issuer_permissions = opts.flags;
       opts.core_exchange_rate = price(asset(1), asset(1,asset_id_type(1)));
-      create_asset(get_account(creator).name, symbol, 2, opts, {}, true);
+      create_asset(get_account(creator).name, symbol, 2, opts, {}, {}, true);
    }
 
    void dbg_make_mia(string creator, string symbol)
@@ -2654,7 +2682,7 @@ public:
       opts.issuer_permissions = opts.flags;
       opts.core_exchange_rate = price(asset(1), asset(1,asset_id_type(1)));
       bitasset_options bopts;
-      create_asset(get_account(creator).name, symbol, 2, opts, bopts, true);
+      create_asset(get_account(creator).name, symbol, 2, opts, bopts, {}, true);
    }
 
    void dbg_push_blocks( const std::string& src_filename, uint32_t count )
@@ -3505,10 +3533,11 @@ signed_transaction wallet_api::create_asset(string issuer,
                                             uint8_t precision,
                                             asset_options common,
                                             fc::optional<bitasset_options> bitasset_opts,
+                                            fc::optional<project_asset_options> project_asset_opts,
                                             bool broadcast)
 
 {
-   return my->create_asset(issuer, symbol, precision, common, bitasset_opts, broadcast);
+   return my->create_asset(issuer, symbol, precision, common, bitasset_opts, project_asset_opts, broadcast);
 }
 
 signed_transaction wallet_api::update_asset(string symbol,

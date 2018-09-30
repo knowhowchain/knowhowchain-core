@@ -475,7 +475,7 @@ HEADERS += libraries/app/application_impl.hxx \
            libraries/fc/src/compress/miniz.c \
            libraries/fc/vendor/secp256k1-zkp/src/secp256k1.c \
     libraries/khc/include/graphene/khc/util.hpp \
-    libraries/khc/include/graphene/khc/util.hpp \
+    libraries/khc/include/graphene/khc/config.hpp \
     libraries/chain/include/graphene/chain/protocol/power.hpp \
     libraries/chain/include/graphene/chain/power_evaluator.hpp
 SOURCES += libraries/app/api.cpp \

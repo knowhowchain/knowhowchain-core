@@ -1052,6 +1052,8 @@ class wallet_api
        *               this new asset. Since this ID is not known at the time this operation is 
        *               created, create this price as though the new asset has instance ID 1, and
        *               the chain will overwrite it with the new asset's ID.
+       * @param project_asset_opts options specific to projAssets.  This may be null unless you
+       *                want issue a project
        * @param bitasset_opts options specific to BitAssets.  This may be null unless the
        *               \c market_issued flag is set in common.flags
        * @param broadcast true to broadcast the transaction on the network
@@ -1062,6 +1064,7 @@ class wallet_api
                                       uint8_t precision,
                                       asset_options common,
                                       fc::optional<bitasset_options> bitasset_opts,
+                                      fc::optional<project_asset_options> project_asset_opts,
                                       bool broadcast = false);
 
       /** Issue new shares of an asset.

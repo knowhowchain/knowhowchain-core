@@ -362,6 +362,7 @@ class database_api
        */
       vector<optional<asset_object>> lookup_asset_symbols(const vector<string>& symbols_or_ids)const;
 
+      vector<optional<asset_object>> lookup_asset_by_project_name(const vector<string>& project_names)const;
       /////////////////////
       // Markets / feeds //
       /////////////////////
@@ -740,6 +741,7 @@ FC_API(graphene::app::database_api,
    (get_assets)
    (list_assets)
    (lookup_asset_symbols)
+   (lookup_asset_by_project_name)
 
    // Markets / feeds
    (get_order_book)

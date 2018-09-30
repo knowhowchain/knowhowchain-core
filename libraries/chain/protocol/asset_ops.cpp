@@ -109,6 +109,7 @@ void  asset_create_operation::validate()const
       FC_ASSERT( common_options.issuer_permissions & global_settle );
    }
    if( bitasset_opts ) bitasset_opts->validate();
+   if( project_asset_opts ) project_asset_opts->validate();
 
    asset dummy = asset(1) * common_options.core_exchange_rate;
    FC_ASSERT(dummy.asset_id == asset_id_type(1));
@@ -236,6 +237,8 @@ void asset_options::validate()const
    {
       FC_ASSERT( whitelist_markets.find(item) == whitelist_markets.end() );
    }
+
+   FC_ASSERT( description.size() <= 100 );
 }
 
 void asset_claim_fees_operation::validate()const {
@@ -248,6 +251,22 @@ void asset_claim_pool_operation::validate()const {
    FC_ASSERT( fee.asset_id != asset_id);
    FC_ASSERT( amount_to_claim.amount > 0 );
    FC_ASSERT( amount_to_claim.asset_id == asset_id_type());
+}
+
+void project_asset_options::validate()const
+{
+   if (name.size() == 0)
+       return;
+   FC_ASSERT( name.size() <= 30 );
+   FC_ASSERT( type >= 0 && type <= project_type::other );
+   FC_ASSERT( project_cycle >= 1
+              && project_cycle <= 36);
+   //KHCTODO check url
+   FC_ASSERT( transfer_ratio >= 0
+              && transfer_ratio <= 49 );
+
+   FC_ASSERT( financing_cycle >= 1
+              && financing_cycle <= 4);
 }
 
 } } // namespace graphene::chain

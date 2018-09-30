@@ -24,6 +24,7 @@
 #pragma once
 #include <graphene/chain/protocol/asset_ops.hpp>
 #include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/global_fun.hpp>
 #include <graphene/db/generic_index.hpp>
 
 /**
@@ -123,6 +124,7 @@ namespace graphene { namespace chain {
 
          asset_options options;
 
+         project_asset_options proj_options;
 
          /// Current supply, fee pool, and collected fees are stored in a separate object as they change frequently.
          asset_dynamic_data_id_type  dynamic_asset_data_id;
@@ -141,6 +143,8 @@ namespace graphene { namespace chain {
                FC_ASSERT(!(options.flags & disable_force_settle || options.flags & global_settle));
                FC_ASSERT(!(options.issuer_permissions & disable_force_settle || options.issuer_permissions & global_settle));
             }
+            FC_ASSERT(symbol.size() <= 10);
+            proj_options.validate();
          }
 
          template<class DB>
@@ -243,6 +247,10 @@ namespace graphene { namespace chain {
    struct by_symbol;
    struct by_type;
    struct by_issuer;
+   struct by_projasset_name;
+   struct by_start_financing_time;
+   std::string projasset_compare_name(const asset_object& proj_asset);
+   time_point_sec projasset_compare_start_financing_time(const asset_object& proj_asset);
    typedef multi_index_container<
       asset_object,
       indexed_by<
@@ -254,7 +262,9 @@ namespace graphene { namespace chain {
                 const_mem_fun<asset_object, bool, &asset_object::is_market_issued>,
                 member< object, object_id_type, &object::id >
             >
-         >
+         >,
+         ordered_non_unique< tag<by_projasset_name>, global_fun< const asset_object&, std::string, &projasset_compare_name > >,
+         ordered_non_unique< tag<by_start_financing_time>, global_fun< const asset_object&, time_point_sec, &projasset_compare_start_financing_time > >
       >
    > asset_object_multi_index_type;
    typedef generic_index<asset_object, asset_object_multi_index_type> asset_index;
@@ -281,6 +291,7 @@ FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),
                     (precision)
                     (issuer)
                     (options)
+                    (proj_options)
                     (dynamic_asset_data_id)
                     (bitasset_data_id)
                     (buyback_account)

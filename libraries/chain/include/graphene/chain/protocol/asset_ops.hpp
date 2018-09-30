@@ -112,6 +112,49 @@ namespace graphene { namespace chain {
       void validate()const;
    };
 
+    /**
+    * @brief The project_asset_options struct contains configurable options available only to projAssets
+    *
+    * Before publishing a project, you should publish an asset associated with it that holds the project-related options.
+    */
+   struct project_asset_options
+   {
+       enum project_type
+       {
+           technology = 0,
+           novel = 1,
+           movie = 2,
+           music = 3,
+           other
+       };
+       /// project name, must be unique.
+       std::string name = "";
+
+       uint8_t  type = project_type::other;
+
+       ///at least 1 month, up to 36 months
+       uint16_t project_cycle = 0;
+
+       ///Community related address
+       std::string url = "";
+
+       ///0~49
+       uint16_t transfer_ratio = 0;
+
+       /// Achieving a minimum financing amount is considered a successful financing
+       share_type minimum_financing_amount = 0;
+
+       fc::time_point_sec  start_financing_time;
+       ///Up to 4 weeks
+       uint16_t  financing_cycle=0;
+
+       extensions_type extensions;
+
+       /// Perform internal consistency checks.
+       /// @throws fc::exception if any check fails
+       void validate() const;
+   };
+
 
    /**
     * @ingroup operations
@@ -142,6 +185,10 @@ namespace graphene { namespace chain {
       /// Options only available for BitAssets. MUST be non-null if and only if the @ref market_issued flag is set in
       /// common_options.flags
       optional<bitasset_options> bitasset_opts;
+      /// Options only available for projAssets.
+      optional<project_asset_options> project_asset_opts;
+
+      optional<share_type> power;
       /// For BitAssets, set this to true if the asset implements a @ref prediction_market; false otherwise
       bool is_prediction_market = false;
       extensions_type extensions;
@@ -511,6 +558,13 @@ FC_REFLECT( graphene::chain::asset_claim_fees_operation::fee_parameters_type, (f
 FC_REFLECT( graphene::chain::asset_claim_pool_operation, (fee)(issuer)(asset_id)(amount_to_claim)(extensions) )
 FC_REFLECT( graphene::chain::asset_claim_pool_operation::fee_parameters_type, (fee) )
 
+FC_REFLECT_ENUM( graphene::chain::project_asset_options::project_type,
+                (technology)
+                (novel)
+                (movie)
+                (music)
+                (other)
+              )
 FC_REFLECT( graphene::chain::asset_options,
             (max_supply)
             (market_fee_percent)
@@ -532,6 +586,18 @@ FC_REFLECT( graphene::chain::bitasset_options,
             (force_settlement_offset_percent)
             (maximum_force_settlement_volume)
             (short_backing_asset)
+            (extensions)
+          )
+
+FC_REFLECT( graphene::chain::project_asset_options,
+            (name)
+            (type)
+            (project_cycle)
+            (url)
+            (transfer_ratio)
+            (minimum_financing_amount)
+            (start_financing_time)
+            (financing_cycle)
             (extensions)
           )
 
@@ -557,6 +623,8 @@ FC_REFLECT( graphene::chain::asset_create_operation,
             (precision)
             (common_options)
             (bitasset_opts)
+            (project_asset_opts)
+            (power)
             (is_prediction_market)
             (extensions)
           )

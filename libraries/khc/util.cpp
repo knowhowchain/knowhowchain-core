@@ -17,7 +17,7 @@ std::string khc_amount_to_string(share_type amount,uint8_t precision)
    return result;
 }
 
-share_type amount_from_string(string amount_string,uint8_t precision)
+share_type khc_amount_from_string(string amount_string,uint8_t precision)
 { try {
    bool negative_found = false;
    bool decimal_found = false;
@@ -72,6 +72,23 @@ share_type amount_from_string(string amount_string,uint8_t precision)
 
    return satoshis;
    } FC_CAPTURE_AND_RETHROW( (amount_string) )
+}
+
+std::pair<share_type, share_type> power_required_for_finacing(share_type minimum_financing_amount)
+{
+    if (minimum_financing_amount <= 1000)
+        return std::make_pair(51, 99);
+    if (minimum_financing_amount <= 5000)
+        return std::make_pair(100, 499);
+    if (minimum_financing_amount <= 20000)
+        return std::make_pair(500, 1999);
+    if (minimum_financing_amount <= 100000)
+        return std::make_pair(2000, 4999);
+    if (minimum_financing_amount <= 500000)
+        return std::make_pair(5000, 9999);
+    if (minimum_financing_amount <= 1000000)
+        return std::make_pair(10000, 49999);
+    return std::make_pair(50000, 0); //0 means No upper limit
 }
 
 }}

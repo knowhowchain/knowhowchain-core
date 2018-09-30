@@ -167,3 +167,13 @@ string asset_object::amount_to_string(share_type amount) const
       result += "." + fc::to_string(scaled_precision.value + decimals).erase(0,1);
    return result;
 }
+
+std::string graphene::chain::projasset_compare_name(const asset_object &a)
+{
+    return a.proj_options.name;
+}
+
+time_point_sec graphene::chain::projasset_compare_start_financing_time(const asset_object &a)
+{
+    return a.proj_options.start_financing_time;
+}
