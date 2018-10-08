@@ -31,7 +31,6 @@
 #include <graphene/chain/is_authorized_asset.hpp>
 #include <graphene/khc/util.hpp>
 #include <graphene/khc/config.hpp>
-#include <a.out.h>
 
 #include <functional>
 
@@ -57,7 +56,8 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    FC_ASSERT(!(op.bitasset_opts.valid() && op.project_asset_opts.valid()), "bitasset and projasset cannot be set at the same time.");
    if (op.project_asset_opts.valid())
    {
-       KHC_WASSERT(khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first >= *op.power, "Power is not enough!");
+       std::cout << khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first.value << "," << (*op.power).value << std::endl;
+       KHC_WASSERT(khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first <= *op.power, "Power is not enough!");//XJTODO print why not enough
    }
    auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );

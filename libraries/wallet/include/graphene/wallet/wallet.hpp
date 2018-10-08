@@ -1394,6 +1394,30 @@ class wallet_api
       signed_transaction convert_power(string owner_account,string amount,bool broadcast = false);
 
       /**
+       * @brief investment_asset
+       * @param owner_account the name or id of the account which investment
+       * @param amount is the investment amount
+       * @param asset is the name or id of the asset which investment by account
+       * @param broadcast
+       * @return
+       */
+      signed_transaction investment_asset(string owner_account,string amount,string asset,bool broadcast = false);
+
+      /**
+       * @brief list_asset_investment
+       * @param asset is the name or id of the asset which investment by account
+       * @return
+       */
+      vector<asset_investment_object> list_asset_investment(string asset);
+
+      /**
+       * @brief list_account_investment
+       * @param account the name or id of the account which investment
+       * @return
+       */
+      vector<asset_investment_object> list_account_investment(string account);
+
+      /**
        * Update a witness object owned by the given account.
        *
        * @param witness The name of the witness's owner account.  Also accepts the ID of the owner account or the ID of the witness.
@@ -1853,4 +1877,7 @@ FC_API( graphene::wallet::wallet_api,
         (convert_power)
         //(update_account_key)
         (get_account_id_by_private_key)
+        (investment_asset)
+        (list_asset_investment)
+        (list_account_investment)
       )

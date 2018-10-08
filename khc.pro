@@ -477,7 +477,9 @@ HEADERS += libraries/app/application_impl.hxx \
     libraries/khc/include/graphene/khc/util.hpp \
     libraries/khc/include/graphene/khc/config.hpp \
     libraries/chain/include/graphene/chain/protocol/power.hpp \
-    libraries/chain/include/graphene/chain/power_evaluator.hpp
+    libraries/chain/include/graphene/chain/power_evaluator.hpp \
+    libraries/chain/include/graphene/chain/protocol/financing.hpp \
+    libraries/chain/include/graphene/chain/financing_evaluator.hpp
 SOURCES += libraries/app/api.cpp \
            libraries/app/application.cpp \
            libraries/app/database_api.cpp \
@@ -826,7 +828,9 @@ SOURCES += libraries/app/api.cpp \
            libraries/fc/vendor/websocketpp/test/transport/iostream/endpoint.cpp \
     libraries/chain/protocol/power.cpp \
     libraries/chain/power_evaluator.cpp \
-    libraries/khc/util.cpp
+    libraries/khc/util.cpp \
+    libraries/chain/protocol/financing.cpp \
+    libraries/chain/financing_evaluator.cpp
 
 DISTFILES += \
     libraries/app/CMakeLists.txt \

@@ -160,6 +160,11 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
 
       string get_account_power(account_id_type account,uint8_t power_from);
 
+      vector<asset_investment_object> list_asset_investment(asset_id_type asset_id);
+
+      vector<asset_investment_object> list_account_investment(account_id_type account_id);
+
+
    //private:
       static string price_to_string( const price& _price, const asset_object& _base, const asset_object& _quote );
 
@@ -2165,6 +2170,16 @@ string database_api::get_account_power(account_id_type account,uint8_t power_fro
     return my->get_account_power(account,power_from);
 }
 
+vector<asset_investment_object> database_api::list_asset_investment(asset_id_type asset_id)
+{
+    return my->list_asset_investment(asset_id);
+}
+
+vector<asset_investment_object> database_api::list_account_investment(account_id_type account_id)
+{
+    return my->list_account_investment(account_id);
+}
+
 vector<withdraw_permission_object> database_api_impl::get_withdraw_permissions_by_recipient(account_id_type account, withdraw_permission_id_type start, uint32_t limit)const
 {
    FC_ASSERT( limit <= 101 );
@@ -2205,8 +2220,8 @@ string database_api_impl::get_account_power(account_id_type account_id,uint8_t p
         return khc_amount_to_string(power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
 
     share_type power_common = 0;
-    const account_power_index& balance_index = _db.get_index_type<account_power_index>();
-    auto range = balance_index.indices().get<by_account_power_from>().equal_range(boost::make_tuple(account_id));
+    const account_power_index& power_index = _db.get_index_type<account_power_index>();
+    auto range = power_index.indices().get<by_account_power_from>().equal_range(boost::make_tuple(account_id));
     for (const account_power_object& power_object : boost::make_iterator_range(range.first, range.second))
     {
         //all power
@@ -2228,6 +2243,30 @@ string database_api_impl::get_account_power(account_id_type account_id,uint8_t p
     }
 
     return khc_amount_to_string(power_common - power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
+}
+
+vector<asset_investment_object> database_api_impl::list_asset_investment(asset_id_type asset_id)
+{
+    const auto& idx = _db.get_index_type<asset_investment_index>().indices().get<by_asset>();
+    auto range = idx.equal_range(asset_id);
+    vector<asset_investment_object> vec;
+    std::for_each(range.first, range.second,
+                  [&vec](const asset_investment_object& obj){
+        vec.emplace_back(obj);
+    });
+    return vec;
+}
+
+vector<asset_investment_object> database_api_impl::list_account_investment(account_id_type account_id)
+{
+    const auto& idx = _db.get_index_type<asset_investment_index>().indices().get<by_account>();
+    auto range = idx.equal_range(account_id);
+    vector<asset_investment_object> vec;
+    std::for_each(range.first, range.second,
+                  [&vec](const asset_investment_object& obj){
+        vec.emplace_back(obj);
+    });
+    return vec;
 }
 
 

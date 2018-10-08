@@ -65,6 +65,31 @@ namespace graphene { namespace chain {
          share_type confidential_supply; ///< total asset held in confidential balances
          share_type accumulated_fees; ///< fees accumulate to be paid out over time
          share_type fee_pool;         ///< in core asset
+
+         share_type financing_current_supply;
+         share_type financing_confidential_supply;
+   };
+
+   class asset_investment_object : public abstract_object<asset_investment_object>
+   {
+   public:
+       static const uint8_t space_id = implementation_ids;
+       static const uint8_t type_id  = impl_asset_investment_object_type;
+
+       ///the investment account
+       account_id_type  investment_account_id;
+
+       ///the investment asset info
+       asset_id_type investment_asset_id;
+
+       ///the investment KHD amount
+       asset investment_khd_amount;
+
+       ///the curr height of this investment
+       share_type investment_height;
+
+       ///the curr timestamp of this investment
+       time_point_sec investment_timestamp;
    };
 
    /**
@@ -269,10 +294,35 @@ namespace graphene { namespace chain {
    > asset_object_multi_index_type;
    typedef generic_index<asset_object, asset_object_multi_index_type> asset_index;
 
+
+   /**
+    * @ingroup object_index
+    */
+   struct by_asset;
+   struct by_account;
+
+   typedef multi_index_container<
+        asset_investment_object,
+        indexed_by<
+            ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+            ordered_non_unique< tag<by_asset>, member<asset_investment_object, asset_id_type, &asset_investment_object::investment_asset_id> >,
+            ordered_non_unique< tag<by_account>, member<asset_investment_object, account_id_type, &asset_investment_object::investment_account_id> >
+            >
+    > asset_investment_object_multi_index_type;
+
+   typedef generic_index<asset_investment_object,asset_investment_object_multi_index_type> asset_investment_index;
+
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::object),
-                    (current_supply)(confidential_supply)(accumulated_fees)(fee_pool) )
+                    (current_supply)(confidential_supply)(accumulated_fees)(fee_pool)(financing_current_supply)(financing_confidential_supply) )
+
+FC_REFLECT_DERIVED( graphene::chain::asset_investment_object, (graphene::db::object),
+                    (investment_account_id)
+                    (investment_asset_id)
+                    (investment_khd_amount)
+                    (investment_height)
+                    (investment_timestamp))
 
 FC_REFLECT_DERIVED( graphene::chain::asset_bitasset_data_object, (graphene::db::object),
                     (asset_id)

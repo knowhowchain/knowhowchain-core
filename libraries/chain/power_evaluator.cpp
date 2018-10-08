@@ -25,6 +25,7 @@
 #include <graphene/chain/power_evaluator.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/khc/util.hpp>
+#include <fc/uint128.hpp>
 
 #include <sstream>
 
@@ -65,7 +66,8 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
    auto khd_price = current_bitasset_data.current_feed.settlement_price;
    FC_ASSERT( !khd_price.is_null() );
 
-   share_type power_amount = o.amount.amount / CONVERT_POWER_REFER_ASSET_RATE / khd_price.base.amount * khd_price.quote.amount ;
+   share_type power_amount = (fc::uint128_t(o.amount.amount.value) / CONVERT_POWER_REFER_ASSET_RATE
+                              / khd_price.base.amount.value * khd_price.quote.amount.value).to_uint64();
 
    const account_power_index& balance_index = d.get_index_type<account_power_index>();
    auto range = balance_index.indices().get<by_account_power_from>().equal_range(boost::make_tuple(o.account));

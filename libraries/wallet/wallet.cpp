@@ -1259,7 +1259,6 @@ public:
       create_op.bitasset_opts = bitasset_opts;
       create_op.project_asset_opts = project_asset_opts;
       create_op.power = power;
-
       signed_transaction tx;
       tx.operations.push_back( create_op );
       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
@@ -1656,6 +1655,42 @@ public:
 
        return sign_transaction( tx, broadcast );
     } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) ) }
+
+   signed_transaction investment_asset(string owner_account,
+                                       string amount,
+                                       string asset,
+                                       bool broadcast /*= false*/)
+   {try {
+       account_object from_account = get_account(owner_account);
+       asset_object asset_obj = get_asset(asset);
+
+       asset_investment_operation asset_investment_op;
+       asset_investment_op.account_id = from_account.id;
+       asset_investment_op.investment_asset_id = asset_obj.id;
+       asset_object asset_khd = get_asset( CONVERT_POWER_REFER_ASSET );
+       asset_investment_op.amount = asset_khd.amount_from_string(amount);
+
+       signed_transaction tx;
+       tx.operations.push_back(asset_investment_op);
+       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
+       tx.validate();
+
+       return sign_transaction( tx, broadcast );
+    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) )}
+
+    vector<asset_investment_object> list_asset_investment(string asset)
+    {
+        if( auto real_id = detail::maybe_id<asset_id_type>(asset) )
+           return _remote_db->list_asset_investment(*real_id);
+        return _remote_db->list_asset_investment(get_asset(asset).id);
+    }
+
+    vector<asset_investment_object> list_account_investment(string account)
+    {
+        if( auto real_id = detail::maybe_id<account_id_type>(account) )
+           return _remote_db->list_account_investment(*real_id);
+        return _remote_db->list_account_investment(get_account(account).id);
+    }
 
 
    signed_transaction create_witness(string owner_account,
@@ -2513,6 +2548,18 @@ public:
 
          return ss.str();
       };
+
+      //XJTODO
+//      m["list_asset_investment"] = [this](variant result, const fc::variants& a)
+//      {
+//         auto r = result.as<vector<asset_investment_object>>( GRAPHENE_MAX_NESTED_OBJECTS );
+
+//         std::stringstream ss;
+////         for( unsigned i = 0; i < asset_investments.size(); ++i )
+////            ss << asset_investments[i].amount_to_pretty_string(r[i]) << "\n";
+
+//         return ss.str();
+//      };
 
       return m;
    }
@@ -3672,6 +3719,21 @@ string wallet_api::get_account_power(string owner_account,uint8_t power_from)
 signed_transaction wallet_api::convert_power(string owner_account, string amount, bool broadcast)
 {
     return my->convert_power(owner_account,amount,broadcast);
+}
+
+signed_transaction wallet_api::investment_asset(string owner_account, string amount, string asset, bool broadcast)
+{
+    return my->investment_asset(owner_account,amount,asset,broadcast);
+}
+
+vector<asset_investment_object> wallet_api::list_asset_investment(string asset)
+{
+    return my->list_asset_investment(asset);
+}
+
+vector<asset_investment_object> wallet_api::list_account_investment(string account)
+{
+    return my->list_account_investment(account);
 }
 
 signed_transaction wallet_api::create_worker(

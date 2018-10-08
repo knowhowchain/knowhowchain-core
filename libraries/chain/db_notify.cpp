@@ -259,6 +259,10 @@ struct get_impacted_account_visitor
    {
        _impacted.insert( op.fee_payer() );
    }
+   void operator()( const asset_investment_operation& op )
+   {
+       _impacted.insert( op.fee_payer() );
+   }
 };
 
 static void operation_get_impacted_accounts( const operation& op, flat_set<account_id_type>& result )
@@ -418,6 +422,11 @@ static void get_relevant_accounts( const object* obj, flat_set<account_id_type>&
               const auto& aobj = dynamic_cast<const account_locked_power_object*>(obj);
               FC_ASSERT( aobj != nullptr );
               accounts.insert( aobj->owner );
+              break;
+          }case impl_asset_investment_object_type:{
+              const auto& aobj = dynamic_cast<const asset_investment_object*>(obj);
+              FC_ASSERT( aobj != nullptr );
+              accounts.insert( aobj->investment_account_id );
               break;
           }
       }

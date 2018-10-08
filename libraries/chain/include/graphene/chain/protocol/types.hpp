@@ -164,7 +164,8 @@ namespace graphene { namespace chain {
       impl_fba_accumulator_object_type,
       impl_collateral_bid_object_type,
       impl_account_power_object_type=161,
-      impl_account_locked_power_object_type=162
+      impl_account_locked_power_object_type=162,
+      impl_asset_investment_object_type=163
    };
 
    //typedef fc::unsigned_int            object_id_type;
@@ -219,6 +220,7 @@ namespace graphene { namespace chain {
    class collateral_bid_object;
    class account_power_object;
    class account_locked_power_object;
+   class asset_investment_object;
 
    typedef object_id< implementation_ids, impl_global_property_object_type,  global_property_object>                    global_property_id_type;
    typedef object_id< implementation_ids, impl_dynamic_global_property_object_type,  dynamic_global_property_object>    dynamic_global_property_id_type;
@@ -240,8 +242,9 @@ namespace graphene { namespace chain {
    typedef object_id< implementation_ids, impl_buyback_object_type, buyback_object >                                    buyback_id_type;
    typedef object_id< implementation_ids, impl_fba_accumulator_object_type, fba_accumulator_object >                    fba_accumulator_id_type;
    typedef object_id< implementation_ids, impl_collateral_bid_object_type, collateral_bid_object >                      collateral_bid_id_type;
-   typedef object_id< implementation_ids, impl_account_power_object_type, account_power_object >                      account_power_id_type;
-   typedef object_id< implementation_ids, impl_account_locked_power_object_type, account_locked_power_object >    account_locked_power_id_type;
+   typedef object_id< implementation_ids, impl_account_power_object_type, account_power_object >                        account_power_id_type;
+   typedef object_id< implementation_ids, impl_account_locked_power_object_type, account_locked_power_object >          account_locked_power_id_type;
+   typedef object_id< implementation_ids, impl_asset_investment_object_type, asset_investment_object >                  asset_investment_id_type;
 
    typedef fc::array<char, GRAPHENE_MAX_ASSET_SYMBOL_LENGTH>    symbol_type;
    typedef fc::ripemd160                                        block_id_type;
@@ -375,6 +378,7 @@ FC_REFLECT_ENUM( graphene::chain::impl_object_type,
                  (impl_collateral_bid_object_type)
                  (impl_account_power_object_type)
                  (impl_account_locked_power_object_type)
+                 (impl_asset_investment_object_type)
                )
 
 FC_REFLECT_TYPENAME( graphene::chain::share_type )
@@ -409,6 +413,7 @@ FC_REFLECT_TYPENAME( graphene::chain::fba_accumulator_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::collateral_bid_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_power_id_type )
 FC_REFLECT_TYPENAME( graphene::chain::account_locked_power_id_type )
+FC_REFLECT_TYPENAME( graphene::chain::asset_investment_id_type )
 
 FC_REFLECT( graphene::chain::void_t, )
 

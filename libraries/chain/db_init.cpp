@@ -62,6 +62,7 @@
 #include <graphene/chain/witness_evaluator.hpp>
 #include <graphene/chain/worker_evaluator.hpp>
 #include <graphene/chain/power_evaluator.hpp>
+#include <graphene/chain/financing_evaluator.hpp>
 
 #include <graphene/chain/protocol/fee_schedule.hpp>
 
@@ -130,6 +131,9 @@ const uint8_t worker_object::type_id;
 const uint8_t account_power_object::space_id;
 const uint8_t account_power_object::type_id;
 
+const uint8_t asset_investment_object::space_id;
+const uint8_t asset_investment_object::type_id;
+
 
 void database::initialize_evaluators()
 {
@@ -179,6 +183,7 @@ void database::initialize_evaluators()
    register_evaluator<asset_update_issuer_evaluator>();
    register_evaluator<asset_claim_pool_evaluator>();
    register_evaluator<power_convert_evaluator>();
+   register_evaluator<asset_investment_evaluator>();
 }
 
 void database::initialize_indexes()
@@ -213,6 +218,7 @@ void database::initialize_indexes()
    add_index< primary_index<account_balance_index                         > >();
    add_index< primary_index<account_power_index                         > >();
    add_index< primary_index<account_locked_power_index            > >();
+   add_index< primary_index<asset_investment_index                        > >();
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();

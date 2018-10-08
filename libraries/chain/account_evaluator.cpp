@@ -219,7 +219,7 @@ object_id_type account_create_evaluator::do_apply( const account_create_operatio
              s.owner = obj.id;
              s.power_from = graphene::khc::power_from_register;
              s.power_value = 50*GRAPHENE_BLOCKCHAIN_PRECISION;
-         }).id;
+         });
    });
 
    /*

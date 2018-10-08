@@ -679,6 +679,19 @@ class database_api
        */
       string get_account_power(account_id_type account,uint8_t power_from);
 
+      /** Get the list of asset investment
+       *   @param asset the name or id of the asset
+       *   @returns the list of asset investment
+       */
+      vector<asset_investment_object> list_asset_investment(asset_id_type asset_id);
+
+
+      /** Get the list of account investment
+       *   @param account the name or id of the account
+       *   @returns the list of account investment
+       */
+      vector<asset_investment_object> list_account_investment(account_id_type account_id);
+
    private:
       std::shared_ptr< database_api_impl > my;
 };
@@ -729,6 +742,7 @@ FC_API(graphene::app::database_api,
    (lookup_accounts)
    (get_account_count)
    (get_account_power)
+   (list_account_investment)
 
    // Balances
    (get_account_balances)
@@ -742,6 +756,7 @@ FC_API(graphene::app::database_api,
    (list_assets)
    (lookup_asset_symbols)
    (lookup_asset_by_project_name)
+   (list_asset_investment)
 
    // Markets / feeds
    (get_order_book)
