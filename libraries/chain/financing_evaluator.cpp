@@ -35,12 +35,16 @@ namespace graphene { namespace chain {
 void_result asset_investment_evaluator::do_evaluate( const asset_investment_operation& o )
 { try {
    database& d = db();
-   FC_ASSERT(o.fee.amount >= 0);
-   FC_ASSERT(o.amount.amount > 0);
-   const asset_object& mia = d.get(o.investment_asset_id);
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
-   asset account_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
-   FC_ASSERT( account_asset >= o.amount);
+   KHC_WASSERT(o.fee.amount >= 0,"invalid asset investment fee amount");
+   KHC_WASSERT(o.amount.amount > 0,"invalid investment amount:${investment_amount}",
+               ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
+   const asset_object& mia = d.get(o.investment_asset_id);
+
+   asset account_khd_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
+   KHC_WASSERT( account_khd_asset >= o.amount,"account amount(${account_amount}) less than inverstment amount(${investment_amount})",
+                ("account_amount",khc::khc_amount_to_string(account_khd_asset.amount.value,khd_asset_object.precision))
+                ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
    const auto& dpo = d.get_dynamic_global_properties();
    //if(dpo.head_block_number > mia.proj_options.financing_cycle)//XJTODO need start block,add end time check
 
