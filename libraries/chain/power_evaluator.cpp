@@ -94,6 +94,8 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
    //adjust balance
    d.adjust_balance( o.account, -o.amount );
 
+   d.adjust_balance( GRAPHENE_NULL_ACCOUNT, o.amount );
+
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
