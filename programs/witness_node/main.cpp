@@ -32,6 +32,7 @@
 #include <graphene/snapshot/snapshot.hpp>
 #include <graphene/es_objects/es_objects.hpp>
 #include <graphene/grouped_orders/grouped_orders_plugin.hpp>
+#include <graphene/khc/config.hpp>
 
 #include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
@@ -187,6 +188,7 @@ int main(int argc, char** argv) {
             ("help,h", "Print this help message and exit.")
             ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("witness_node_data_dir"), "Directory containing databases, configuration file, etc.")
             ("version,v", "Display version information")
+            ("debug", "for inner test")
             ;
 
       bpo::variables_map options;
@@ -250,7 +252,18 @@ int main(int argc, char** argv) {
 
       node->startup();
       node->startup_plugins();
-      
+
+      if( options.count("test") )
+      {
+         g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_TEST_FINANCING_CYCLE_UNIT;
+         g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_TEST_PROJECT_CYCLE_UNIT;
+      }
+      else
+      {
+         g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
+         g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_PROJECT_CYCLE_UNIT;
+      }
+
       fc::promise<int>::ptr exit_promise = new fc::promise<int>("UNIX Signal Handler");
 
       fc::set_signal_handler([&exit_promise](int signal) {

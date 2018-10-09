@@ -1,14 +1,15 @@
 #include <graphene/khc/util.hpp>
+#include <graphene/khc/config.hpp>
 #include <graphene/chain/protocol/asset.hpp>
+
+uint64_t g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
+uint64_t g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
 
 namespace graphene { namespace khc {
 
 std::string khc_amount_to_string(share_type amount,uint8_t precision)
 {
-   share_type scaled_precision = 1;
-   for( uint8_t i = 0; i < precision; ++i )
-      scaled_precision *= 10;
-   assert(scaled_precision > 0);
+   share_type scaled_precision =  graphene::chain::asset::scaled_precision(precision);
 
    std::string result = fc::to_string(amount.value / scaled_precision.value);
    auto decimals = amount.value % scaled_precision.value;
@@ -76,19 +77,19 @@ share_type khc_amount_from_string(string amount_string,uint8_t precision)
 
 std::pair<share_type, share_type> power_required_for_finacing(share_type minimum_financing_amount)
 {
-    if (minimum_financing_amount <= 1000)
-        return std::make_pair(51, 99);
-    if (minimum_financing_amount <= 5000)
-        return std::make_pair(100, 499);
-    if (minimum_financing_amount <= 20000)
-        return std::make_pair(500, 1999);
-    if (minimum_financing_amount <= 100000)
-        return std::make_pair(2000, 4999);
-    if (minimum_financing_amount <= 500000)
-        return std::make_pair(5000, 9999);
-    if (minimum_financing_amount <= 1000000)
-        return std::make_pair(10000, 49999);
-    return std::make_pair(50000, 0); //0 means No upper limit
+    if (minimum_financing_amount <= KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA)
+        return std::make_pair(KHC_POWER_GRADE_0_MIN_POWER, KHC_POWER_GRADE_0_MAX_POWER);
+    if (minimum_financing_amount <= KHC_POWER_GRADE_1_MAX_FUNDRAISING_QUOTA)
+        return std::make_pair(KHC_POWER_GRADE_1_MIN_POWER, KHC_POWER_GRADE_1_MAX_POWER);
+    if (minimum_financing_amount <= KHC_POWER_GRADE_2_MAX_FUNDRAISING_QUOTA)
+        return std::make_pair(KHC_POWER_GRADE_2_MIN_POWER, KHC_POWER_GRADE_2_MAX_POWER);
+    if (minimum_financing_amount <= KHC_POWER_GRADE_3_MAX_FUNDRAISING_QUOTA)
+        return std::make_pair(KHC_POWER_GRADE_3_MIN_POWER, KHC_POWER_GRADE_3_MAX_POWER);
+    if (minimum_financing_amount <= KHC_POWER_GRADE_4_MAX_FUNDRAISING_QUOTA)
+        return std::make_pair(KHC_POWER_GRADE_4_MIN_POWER, KHC_POWER_GRADE_4_MAX_POWER);
+    if (minimum_financing_amount <= KHC_POWER_GRADE_5_MAX_FUNDRAISING_QUOTA)
+        return std::make_pair(KHC_POWER_GRADE_5_MIN_POWER, KHC_POWER_GRADE_5_MAX_POWER);
+    return std::make_pair(KHC_POWER_GRADE_6_MIN_POWER, KHC_POWER_GRADE_6_MAX_POWER);
 }
 
 }}

@@ -133,7 +133,7 @@ namespace graphene { namespace chain {
        uint8_t  type = project_type::other;
 
        ///at least 1 month, up to 36 months
-       uint16_t project_cycle = 0;
+       uint64_t project_cycle = 0;
 
        ///Community related address
        std::string url = "";
@@ -144,9 +144,12 @@ namespace graphene { namespace chain {
        /// Achieving a minimum financing amount is considered a successful financing
        share_type minimum_financing_amount = 0;
 
+       ///The height of starting financing
+       uint32_t ref_block_num = 0;
+
        fc::time_point_sec  start_financing_time;
        ///Up to 4 weeks
-       uint16_t  financing_cycle=0;
+       uint64_t  financing_cycle=0;
 
        extensions_type extensions;
 
@@ -596,6 +599,7 @@ FC_REFLECT( graphene::chain::project_asset_options,
             (url)
             (transfer_ratio)
             (minimum_financing_amount)
+            (ref_block_num)
             (start_financing_time)
             (financing_cycle)
             (extensions)

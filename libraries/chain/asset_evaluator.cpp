@@ -56,8 +56,8 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    FC_ASSERT(!(op.bitasset_opts.valid() && op.project_asset_opts.valid()), "bitasset and projasset cannot be set at the same time.");
    if (op.project_asset_opts.valid())
    {
-       std::cout << khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first.value << "," << (*op.power).value << std::endl;
-       KHC_WASSERT(khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first <= *op.power, "Power is not enough!");//XJTODO print why not enough
+       auto min_power = khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first;
+       KHC_WASSERT(min_power <= *op.power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", min_power.value)("power", *op.power));
    }
    auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );
@@ -157,7 +157,7 @@ object_id_type asset_create_evaluator::do_apply( const asset_create_operation& o
            s.power_from = graphene::khc::power_from_locked;
            s.power_value = *op.power;
            const auto& global_properties = db().get_global_properties();
-           s.unlock_height = db().head_block_num() + (op.project_asset_opts->project_cycle * 30 * 86400) /
+           s.unlock_height = db().head_block_num() + op.project_asset_opts->project_cycle /
                    global_properties.parameters.block_interval;
        });
    }

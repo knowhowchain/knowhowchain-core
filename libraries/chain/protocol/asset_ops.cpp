@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 #include <graphene/chain/protocol/asset_ops.hpp>
+#include <graphene/khc/config.hpp>
 
 #include <locale>
 
@@ -257,16 +258,16 @@ void project_asset_options::validate()const
 {
    if (name.size() == 0)
        return;
-   FC_ASSERT( name.size() <= 30 );
+   FC_ASSERT( name.size() <= KHC_PROJECT_ASSET_MAX_NAME_LENGTH );
    FC_ASSERT( type >= 0 && type <= project_type::other );
-   FC_ASSERT( project_cycle >= 1
-              && project_cycle <= 36);
+   FC_ASSERT( project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE * g_khc_project_asset_project_cycle_unit
+              && project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE * g_khc_project_asset_project_cycle_unit);
    //KHCTODO check url
-   FC_ASSERT( transfer_ratio >= 0
-              && transfer_ratio <= 49 );
+   FC_ASSERT( transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO
+              && transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO );
 
-   FC_ASSERT( financing_cycle >= 1
-              && financing_cycle <= 4);
+   FC_ASSERT( financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE * g_khc_project_asset_financing_cycle_unit
+              && financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE * g_khc_project_asset_financing_cycle_unit);
 }
 
 } } // namespace graphene::chain

@@ -60,6 +60,7 @@
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/rpc/api_connection.hpp>
+#include <fc/log/logger.hpp>
 
 #include <graphene/app/api.hpp>
 #include <graphene/chain/asset_object.hpp>
@@ -74,6 +75,7 @@
 #include <graphene/wallet/reflect_util.hpp>
 #include <graphene/debug_witness/debug_api.hpp>
 #include <graphene/khc/util.hpp>
+#include <graphene/khc/config.hpp>
 #include <fc/smart_ref_impl.hpp>
 
 #ifndef WIN32
@@ -1240,15 +1242,30 @@ public:
       fc::optional<share_type> power;
       if (project_asset_opts.valid())
       {
-          FC_ASSERT(project_asset_opts->name.size() != 0, "Asset must have a project name.");
-          project_asset_opts->validate();
+          KHC_WASSERT(project_asset_opts->name.size() != 0, "Asset must have a project name.");
 
-          FC_ASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "Asset with that project name already exists!");
+          KHC_WASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "Asset with that project name already exists!");
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
           const auto required_power_range = khc::power_required_for_finacing(project_asset_opts->minimum_financing_amount);
-          FC_ASSERT( required_power_range.first < *power, "Power is not enough!");
+          KHC_WASSERT( required_power_range.first < *power, "Power is not enough!");
           if (*power > required_power_range.second && required_power_range.second != 0)
               power = required_power_range.second;
+
+          KHC_WASSERT( project_asset_opts->project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE &&
+                       project_asset_opts->project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE);
+          project_asset_opts->project_cycle *= g_khc_project_asset_project_cycle_unit;
+
+          KHC_WASSERT( project_asset_opts->financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE &&
+                       project_asset_opts->financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE);
+          project_asset_opts->financing_cycle *= g_khc_project_asset_financing_cycle_unit;
+
+//          fc::time_point time_diff =  project_asset_opts->start_financing_time - fc::time_point::now().time_since_epoch();
+//          KHC_WASSERT(time_diff.sec_since_epoch() > 0);
+//          project_asset_opts->ref_block_num = get_dynamic_global_properties().head_block_number +
+//                  time_diff.sec_since_epoch() / get_global_properties().parameters.block_interval;
+          idump((project_asset_opts->ref_block_num));
+          KHC_WASSERT(project_asset_opts->ref_block_num > get_dynamic_global_properties().head_block_number,
+                      "Current height is ${height}", ("height", get_dynamic_global_properties().head_block_number));
       }
 
       asset_create_operation create_op;

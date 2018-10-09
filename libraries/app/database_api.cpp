@@ -26,6 +26,7 @@
 #include <graphene/app/util.hpp>
 #include <graphene/chain/get_config.hpp>
 #include <graphene/khc/util.hpp>
+#include <graphene/khc/config.hpp>
 
 #include <fc/bloom_filter.hpp>
 #include <fc/smart_ref_impl.hpp>
@@ -1005,11 +1006,7 @@ vector<optional<asset_object>> database_api_impl::lookup_asset_by_project_name(c
    vector<optional<asset_object> > result;
    result.reserve(project_names.size());
    std::transform(project_names.begin(), project_names.end(), std::back_inserter(result),
-                  [this, &assets_by_projasset_name](const string& project_name) -> optional<asset_object> {
-      if( !project_name.empty() )
-      {
-         return optional<asset_object>();
-      }
+                  [&assets_by_projasset_name](const string& project_name) -> optional<asset_object> {
       auto itr = assets_by_projasset_name.find(project_name);
       return itr == assets_by_projasset_name.end()? optional<asset_object>() : *itr;
    });
@@ -2217,7 +2214,7 @@ string database_api_impl::get_account_power(account_id_type account_id,uint8_t p
     }
 
     if(power_from==power_from_locked)
-        return khc_amount_to_string(power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
+        return khc_amount_to_string(power_locked, KHC_POWER_PRECISION_DIGITS);
 
     share_type power_common = 0;
     const account_power_index& power_index = _db.get_index_type<account_power_index>();
@@ -2242,7 +2239,7 @@ string database_api_impl::get_account_power(account_id_type account_id,uint8_t p
         FC_THROW("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
     }
 
-    return khc_amount_to_string(power_common - power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
+    return khc_amount_to_string(power_common - power_locked, KHC_POWER_PRECISION_DIGITS);
 }
 
 vector<asset_investment_object> database_api_impl::list_asset_investment(asset_id_type asset_id)
