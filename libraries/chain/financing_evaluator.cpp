@@ -67,6 +67,11 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
         data.financing_confidential_supply += o.amount.amount;
    });
 
+   const asset_object& khd_asset_object = d.get(o.amount.asset_id);
+   khc_dlog("account(${account}) investment asset(${asset}) ${investment_khd_amount} KHD.",
+            ("account",o.account_id)("asset",o.investment_asset_id)
+            ("investment_khd_amount",khc::khc_amount_to_string(o.amount.amount,khd_asset_object.precision)));
+
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 

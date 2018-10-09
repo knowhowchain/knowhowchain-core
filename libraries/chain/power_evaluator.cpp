@@ -96,6 +96,10 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
 
    d.adjust_balance( GRAPHENE_NULL_ACCOUNT, o.amount );
 
+   khc_dlog("account(${account}) convert ${khc_amount} KHC to ${power_amount} POWER.",
+            ("account",o.account)("khc_amount",khc::khc_amount_to_string(o.amount.amount,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS))
+            ("power_amount",khc::khc_amount_to_string(power_amount,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS)));
+
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
