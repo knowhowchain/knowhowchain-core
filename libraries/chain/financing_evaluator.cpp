@@ -24,23 +24,23 @@
 
 #include <graphene/chain/financing_evaluator.hpp>
 #include <graphene/chain/database.hpp>
-#include <graphene/khc/util.hpp>//XJTODO
-#include <fc/log/logger.hpp>
-#include <fc/uint128.hpp>
-
-#include <sstream>
+#include <graphene/khc/util.hpp>
 
 namespace graphene { namespace chain {
 
 void_result asset_investment_evaluator::do_evaluate( const asset_investment_operation& o )
 { try {
    database& d = db();
-   FC_ASSERT(o.fee.amount >= 0);
-   FC_ASSERT(o.amount.amount > 0);
-   const asset_object& mia = d.get(o.investment_asset_id);
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
-   asset account_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
-   FC_ASSERT( account_asset >= o.amount);
+   KHC_WASSERT(o.fee.amount >= 0,"invalid asset investment fee amount");
+   KHC_WASSERT(o.amount.amount > 0,"invalid investment amount:${investment_amount}",
+               ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
+   const asset_object& mia = d.get(o.investment_asset_id);
+
+   asset account_khd_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
+   KHC_WASSERT( account_khd_asset >= o.amount,"account amount(${account_amount}) less than inverstment amount(${investment_amount})",
+                ("account_amount",khc::khc_amount_to_string(account_khd_asset.amount.value,khd_asset_object.precision))
+                ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
    const auto& dpo = d.get_dynamic_global_properties();
    //if(dpo.head_block_number > mia.proj_options.financing_cycle)//XJTODO need start block,add end time check
 
@@ -58,6 +58,7 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
        s.investment_asset_id = o.investment_asset_id;
        s.investment_height = dpo.head_block_number;
        s.investment_timestamp = d.head_block_time();
+       s.return_financing_flag = false;
    });
    const asset_object& mia = d.get(o.investment_asset_id);
    const asset_dynamic_data_object* asset_dyn_data = &mia.dynamic_asset_data_id(d);
@@ -65,6 +66,11 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
         data.financing_current_supply += o.amount.amount;
         data.financing_confidential_supply += o.amount.amount;
    });
+
+   const asset_object& khd_asset_object = d.get(o.amount.asset_id);
+   khc_dlog("account(${account}) investment asset(${asset}) ${investment_khd_amount} KHD.",
+            ("account",o.account_id)("asset",o.investment_asset_id)
+            ("investment_khd_amount",khc::khc_amount_to_string(o.amount.amount,khd_asset_object.precision)));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }

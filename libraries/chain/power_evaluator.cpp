@@ -25,9 +25,6 @@
 #include <graphene/chain/power_evaluator.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/khc/util.hpp>
-#include <fc/uint128.hpp>
-
-#include <sstream>
 
 namespace graphene { namespace chain {
 
@@ -37,18 +34,13 @@ void_result power_convert_evaluator::do_evaluate( const power_convert_operation&
    uint32_t skip = _db.get_node_properties().skip_flags;
    share_type account_amount = _db.get_balance( o.account, o.amount.asset_id ).amount;
    bool insufficient_balance =  account_amount >= o.amount.amount;
-   if(!insufficient_balance){
-       khc_wlog("Insufficient Balance(${balance}) To Conver (${amount}) Power",
-                ("balance",account_amount)("amount",o.amount.amount));
-   }
-   FC_ASSERT( insufficient_balance,"Insufficient Balance(${balance}) To Conver (${amount}) Power",
-              ("balance",account_amount)("amount",o.amount.amount) );
-   const asset_object& ref_a = o.refer_amount.asset_id(_db);
-   if(ref_a.symbol != CONVERT_POWER_REFER_ASSET){
-       khc_wlog("Convert Power Refer Asset (${symbol}) is not (${ref_asset})",
-                ("symbol",ref_a.symbol)("ref_asset",CONVERT_POWER_REFER_ASSET));
-   }
-   FC_ASSERT(ref_a.symbol == CONVERT_POWER_REFER_ASSET );
+   const asset_object& khd_asset_obj = o.refer_amount.asset_id(_db);
+   KHC_WASSERT( insufficient_balance,"Account(${account}) Insufficient Balance(${balance}) To Conver (${amount}) Power",
+                ("account",o.account)("balance",khc::khc_amount_to_string(account_amount,khd_asset_obj.precision))
+                ("amount",khc::khc_amount_to_string(o.amount.amount,khd_asset_obj.precision)) );
+
+   KHC_EASSERT(khd_asset_obj.symbol == CONVERT_POWER_REFER_ASSET,"Account(${account}) Convert Power Refer Asset (${symbol}) is not (${ref_asset})",
+               ("account",o.account)("symbol",khd_asset_obj.symbol)("ref_asset",CONVERT_POWER_REFER_ASSET));
 
    if( skip & database::skip_assert_evaluation )
       return void_result();
@@ -64,7 +56,7 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
    const asset_bitasset_data_object& current_bitasset_data = ref_asset.bitasset_data(d);
 
    auto khd_price = current_bitasset_data.current_feed.settlement_price;
-   FC_ASSERT( !khd_price.is_null() );
+   KHC_WASSERT( !khd_price.is_null(),"khd price is null,need to publish khd feed price first!" );
 
    share_type power_amount = (fc::uint128_t(o.amount.amount.value) / CONVERT_POWER_REFER_ASSET_RATE
                               / khd_price.base.amount.value * khd_price.quote.amount.value).to_uint64();
@@ -101,6 +93,12 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
 
    //adjust balance
    d.adjust_balance( o.account, -o.amount );
+
+   d.adjust_balance( GRAPHENE_NULL_ACCOUNT, o.amount );
+
+   khc_dlog("account(${account}) convert ${khc_amount} KHC to ${power_amount} POWER.",
+            ("account",o.account)("khc_amount",khc::khc_amount_to_string(o.amount.amount,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS))
+            ("power_amount",khc::khc_amount_to_string(power_amount,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS)));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }

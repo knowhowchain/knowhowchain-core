@@ -2572,8 +2572,11 @@ public:
 //         auto r = result.as<vector<asset_investment_object>>( GRAPHENE_MAX_NESTED_OBJECTS );
 
 //         std::stringstream ss;
-////         for( unsigned i = 0; i < asset_investments.size(); ++i )
-////            ss << asset_investments[i].amount_to_pretty_string(r[i]) << "\n";
+//         for( unsigned i = 0; i < r.size(); ++i )
+//         {
+//            const asset_investment_object& obj = r[i];
+//            ss << obj.investment_account_id.instance.value << "," << obj.investment_khd_amount.amount.value << "\n";
+//         }
 
 //         return ss.str();
 //      };

@@ -90,6 +90,9 @@ namespace graphene { namespace chain {
 
        ///the curr timestamp of this investment
        time_point_sec investment_timestamp;
+
+       ///default false,if investment fail,amount get back the khd,then set to true
+       bool return_financing_flag;
    };
 
    /**
@@ -322,7 +325,8 @@ FC_REFLECT_DERIVED( graphene::chain::asset_investment_object, (graphene::db::obj
                     (investment_asset_id)
                     (investment_khd_amount)
                     (investment_height)
-                    (investment_timestamp))
+                    (investment_timestamp)
+                    (return_financing_flag))
 
 FC_REFLECT_DERIVED( graphene::chain::asset_bitasset_data_object, (graphene::db::object),
                     (asset_id)

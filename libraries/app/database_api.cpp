@@ -2195,11 +2195,7 @@ vector<withdraw_permission_object> database_api_impl::get_withdraw_permissions_b
 
 string database_api_impl::get_account_power(account_id_type account_id,uint8_t power_from)
 {
-    if(power_from<power_from_all||power_from>=power_from_max)
-    {
-       khc_wlog("invalid power_from:${power_from}",("power_from", power_from));
-       FC_THROW("invalid power_from:${power_from}", ("power_from", power_from));
-    }
+    KHC_WASSERT(power_from>=khc::power_from_all&&power_from<power_from_max,"invalid power_from:${power_from}",("power_from", power_from));
     share_type power_locked = 0;
     if(power_from==power_from_locked||power_from==power_from_all)
     {
@@ -2233,11 +2229,10 @@ string database_api_impl::get_account_power(account_id_type account_id,uint8_t p
             break;
         }
     }
-    if(power_common < power_locked)
-    {
-        khc_wlog("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
-        FC_THROW("power_common:${power_common} less than power_locked:${power_locked}",("power_common", power_common)("power_locked", power_locked));
-    }
+
+    KHC_WASSERT(power_common>=power_locked,"power_common:${power_common} less than power_locked:${power_locked}"
+                ,("power_common", khc_amount_to_string(power_common,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS))
+                 ("power_locked", khc_amount_to_string(power_locked,GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS)));
 
     return khc_amount_to_string(power_common - power_locked, KHC_POWER_PRECISION_DIGITS);
 }
