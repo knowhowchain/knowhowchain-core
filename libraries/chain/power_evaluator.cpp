@@ -25,9 +25,6 @@
 #include <graphene/chain/power_evaluator.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/khc/util.hpp>
-#include <fc/uint128.hpp>
-
-#include <sstream>
 
 namespace graphene { namespace chain {
 

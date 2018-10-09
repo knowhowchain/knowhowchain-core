@@ -24,11 +24,7 @@
 
 #include <graphene/chain/financing_evaluator.hpp>
 #include <graphene/chain/database.hpp>
-#include <graphene/khc/util.hpp>//XJTODO
-#include <fc/log/logger.hpp>
-#include <fc/uint128.hpp>
-
-#include <sstream>
+#include <graphene/khc/util.hpp>
 
 namespace graphene { namespace chain {
 
@@ -62,6 +58,7 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
        s.investment_asset_id = o.investment_asset_id;
        s.investment_height = dpo.head_block_number;
        s.investment_timestamp = d.head_block_time();
+       s.return_financing_flag = false;
    });
    const asset_object& mia = d.get(o.investment_asset_id);
    const asset_dynamic_data_object* asset_dyn_data = &mia.dynamic_asset_data_id(d);
