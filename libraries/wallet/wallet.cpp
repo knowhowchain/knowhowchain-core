@@ -1662,7 +1662,7 @@ public:
        power_convert_op.account = from_account.id;
        asset_object asset_obj = get_asset( GRAPHENE_SYMBOL );
        power_convert_op.amount = asset_obj.amount_from_string(amount);
-       asset_object asset_khd = get_asset( CONVERT_POWER_REFER_ASSET );
+       asset_object asset_khd = get_asset( KHD_ASSET_SYMBOL );
        power_convert_op.refer_amount = asset_khd.amount(0);
 
        signed_transaction tx;
@@ -1686,7 +1686,7 @@ public:
        asset_investment_operation asset_investment_op;
        asset_investment_op.account_id = from_account.id;
        asset_investment_op.investment_asset_id = asset_obj.id;
-       asset_object asset_khd = get_asset( CONVERT_POWER_REFER_ASSET );
+       asset_object asset_khd = get_asset( KHD_ASSET_SYMBOL );
        asset_investment_op.amount = asset_khd.amount_from_string(amount);
 
        signed_transaction tx;

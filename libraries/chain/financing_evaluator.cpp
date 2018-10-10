@@ -32,6 +32,7 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
 { try {
    database& d = db();
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
+   KHC_EASSERT(khd_asset_object.symbol == KHD_ASSET_SYMBOL,"investment must be ${asset}",("asset",KHD_ASSET_SYMBOL));
    KHC_WASSERT(o.fee.amount >= 0,"invalid asset investment fee amount");
    KHC_WASSERT(o.amount.amount > 0,"invalid investment amount:${investment_amount}",
                ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
@@ -76,6 +77,8 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
         data.financing_current_supply += o.amount.amount;
         data.financing_confidential_supply += o.amount.amount;
    });
+
+   d.adjust_balance( o.account_id , -o.amount );
 
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
    khc_dlog("account(${account}) investment asset(${asset}) ${investment_khd_amount} KHD.",

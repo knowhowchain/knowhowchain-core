@@ -39,8 +39,8 @@ void_result power_convert_evaluator::do_evaluate( const power_convert_operation&
                 ("account",o.account)("balance",khc::khc_amount_to_string(account_amount,khd_asset_obj.precision))
                 ("amount",khc::khc_amount_to_string(o.amount.amount,khd_asset_obj.precision)) );
 
-   KHC_EASSERT(khd_asset_obj.symbol == CONVERT_POWER_REFER_ASSET,"Account(${account}) Convert Power Refer Asset (${symbol}) is not (${ref_asset})",
-               ("account",o.account)("symbol",khd_asset_obj.symbol)("ref_asset",CONVERT_POWER_REFER_ASSET));
+   KHC_EASSERT(khd_asset_obj.symbol == KHD_ASSET_SYMBOL,"Account(${account}) Convert Power Refer Asset (${symbol}) is not (${ref_asset})",
+               ("account",o.account)("symbol",khd_asset_obj.symbol)("ref_asset",KHD_ASSET_SYMBOL));
 
    if( skip & database::skip_assert_evaluation )
       return void_result();

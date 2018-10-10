@@ -8,7 +8,7 @@
 namespace graphene { namespace khc {
 using namespace graphene::chain;
 
-#define CONVERT_POWER_REFER_ASSET "KHD"
+#define KHD_ASSET_SYMBOL "KHD"
 #define CONVERT_POWER_REFER_ASSET_RATE 10 //means 10 KHD = 1 Power
 
 enum power_from_source
