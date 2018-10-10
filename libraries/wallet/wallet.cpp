@@ -1263,9 +1263,11 @@ public:
 //          KHC_WASSERT(time_diff.sec_since_epoch() > 0);
 //          project_asset_opts->ref_block_num = get_dynamic_global_properties().head_block_number +
 //                  time_diff.sec_since_epoch() / get_global_properties().parameters.block_interval;
-          idump((project_asset_opts->ref_block_num));
-          KHC_WASSERT(project_asset_opts->ref_block_num > get_dynamic_global_properties().head_block_number,
-                      "Current height is ${height}", ("height", get_dynamic_global_properties().head_block_number));
+//          idump((project_asset_opts->ref_block_num));
+          if (project_asset_opts->ref_block_num == 0)
+              project_asset_opts->ref_block_num = get_dynamic_global_properties().head_block_number + 1;
+          KHC_WASSERT(project_asset_opts->ref_block_num >= get_dynamic_global_properties().head_block_number,
+                      "The specified height ${sheight} is lower than the current height ${height}", ("sheight", project_asset_opts->ref_block_num)("height", get_dynamic_global_properties().head_block_number));
       }
 
       asset_create_operation create_op;
@@ -2322,6 +2324,28 @@ public:
          issue_op.memo->set_message(get_private_key(issuer.options.memo_key),
                                     to.options.memo_key, memo);
       }
+
+      signed_transaction tx;
+      tx.operations.push_back(issue_op);
+      set_operation_fees(tx,_remote_db->get_global_properties().parameters.current_fees);
+      tx.validate();
+
+      return sign_transaction(tx, broadcast);
+   }
+
+   signed_transaction issue_asset_and_get_financing(string symbol, bool broadcast = false)
+   {
+      auto asset_obj = get_asset(symbol);
+
+      auto asset_investments = list_asset_investment(symbol);
+
+      issue_asset_and_get_financing_operation issue_op;
+      std::transform(asset_investments.begin(), asset_investments.end(), std::inserter(issue_op.investment_ids, issue_op.investment_ids.begin()),
+                     [](const asset_investment_object& a) { return a.id; });
+
+      issue_op.issue = asset_obj.issuer;
+      issue_op.investment_asset_id = asset_obj.id;
+      
 
       signed_transaction tx;
       tx.operations.push_back(issue_op);
@@ -3590,6 +3614,11 @@ signed_transaction wallet_api::issue_asset(string to_account, string amount, str
                                            string memo, bool broadcast)
 {
    return my->issue_asset(to_account, amount, symbol, memo, broadcast);
+}
+
+signed_transaction wallet_api::issue_asset_and_get_financing(string symbol, bool broadcast)
+{
+   return my->issue_asset_and_get_financing(symbol, broadcast);
 }
 
 signed_transaction wallet_api::transfer(string from, string to, string amount,

@@ -173,7 +173,7 @@ std::string graphene::chain::projasset_compare_name(const asset_object &a)
     return a.proj_options.name;
 }
 
-time_point_sec graphene::chain::projasset_compare_start_financing_time(const asset_object &a)
+uint32_t graphene::chain::projasset_compare_start_financing_height(const asset_object &a)
 {
-    return a.proj_options.start_financing_time;
+    return a.proj_options.ref_block_num;
 }

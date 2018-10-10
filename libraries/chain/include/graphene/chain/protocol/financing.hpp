@@ -29,8 +29,36 @@ struct asset_investment_operation : public base_operation
    void validate()const;
 };
 
+/**
+ * @brief This operation is used to investment a asset
+ * @ingroup operations
+ *
+ * account can investment asset
+ */
+struct issue_asset_and_get_financing_operation : public base_operation
+{
+   struct fee_parameters_type { share_type fee = 1 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+   /// Paid by authorizing_account
+   asset fee;
+
+   account_id_type issue;
+
+   asset_id_type investment_asset_id;
+
+   /// investment account
+   flat_set<account_id_type> investment_ids;
+
+   account_id_type fee_payer()const { return issue; }
+   void validate()const;
+};
+
 }} // graphene::chain
 
 FC_REFLECT( graphene::chain::asset_investment_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::asset_investment_operation,
             (fee)(account_id)(investment_asset_id)(amount) )
+
+FC_REFLECT( graphene::chain::issue_asset_and_get_financing_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::issue_asset_and_get_financing_operation,
+            (fee)(issue)(investment_asset_id)(investment_ids) )

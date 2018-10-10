@@ -1080,6 +1080,14 @@ class wallet_api
                                      string symbol,
                                      string memo,
                                      bool broadcast = false);
+    
+      /** Issue new shares of an asset and receive the first phase of financing
+       *
+       * @param symbol the ticker symbol of the asset to issue
+       * @param broadcast true to broadcast the transaction on the network
+       * @returns the signed transaction issuing the new shares
+       */
+      signed_transaction issue_asset_and_get_financing( string symbol, bool broadcast = false);
 
       /** Update the core options on an asset.
        * There are a number of options which all assets in the network use. These options are 
@@ -1880,4 +1888,5 @@ FC_API( graphene::wallet::wallet_api,
         (investment_asset)
         (list_asset_investment)
         (list_account_investment)
+        (issue_asset_and_get_financing)
       )

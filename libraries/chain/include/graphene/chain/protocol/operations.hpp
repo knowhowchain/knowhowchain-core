@@ -99,7 +99,8 @@ namespace graphene { namespace chain {
             asset_claim_pool_operation,
             asset_update_issuer_operation,
             power_convert_operation,
-            asset_investment_operation
+            asset_investment_operation,
+            issue_asset_and_get_financing_operation
          > operation;
 
    /// @} // operations group

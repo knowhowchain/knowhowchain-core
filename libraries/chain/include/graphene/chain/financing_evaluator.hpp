@@ -28,7 +28,9 @@
 namespace graphene { namespace chain {
 
 class asset_investment_evaluator;
+class issue_asset_and_get_financing_evaluator;
 struct asset_investment_operation;
+struct issue_asset_and_get_financing_operation;
 
 class asset_investment_evaluator : public evaluator<asset_investment_evaluator>
 {
@@ -39,4 +41,12 @@ class asset_investment_evaluator : public evaluator<asset_investment_evaluator>
         void_result do_apply( const asset_investment_operation& op );
 };
 
+class issue_asset_and_get_financing_evaluator : public evaluator<issue_asset_and_get_financing_evaluator>
+{
+    public:
+        typedef issue_asset_and_get_financing_operation operation_type;
+
+        void_result do_evaluate( const issue_asset_and_get_financing_operation& op );
+        void_result do_apply( const issue_asset_and_get_financing_operation& op );
+};
 } } // graphene::chain

@@ -88,4 +88,17 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
+void_result issue_asset_and_get_financing_evaluator::do_evaluate( const issue_asset_and_get_financing_operation& o )
+{ try {
+   database& d = db();
+
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result issue_asset_and_get_financing_evaluator::do_apply( const issue_asset_and_get_financing_operation& o )
+{ try {
+   database& d = db();
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
 } } // graphene::chain

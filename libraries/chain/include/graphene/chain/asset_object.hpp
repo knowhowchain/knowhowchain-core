@@ -276,9 +276,9 @@ namespace graphene { namespace chain {
    struct by_type;
    struct by_issuer;
    struct by_projasset_name;
-   struct by_start_financing_time;
+   struct by_start_financing_height;
    std::string projasset_compare_name(const asset_object& proj_asset);
-   time_point_sec projasset_compare_start_financing_time(const asset_object& proj_asset);
+   uint32_t projasset_compare_start_financing_height(const asset_object& proj_asset);
    typedef multi_index_container<
       asset_object,
       indexed_by<
@@ -292,7 +292,7 @@ namespace graphene { namespace chain {
             >
          >,
          ordered_non_unique< tag<by_projasset_name>, global_fun< const asset_object&, std::string, &projasset_compare_name > >,
-         ordered_non_unique< tag<by_start_financing_time>, global_fun< const asset_object&, time_point_sec, &projasset_compare_start_financing_time > >
+         ordered_non_unique< tag<by_start_financing_height>, global_fun< const asset_object&, uint32_t, &projasset_compare_start_financing_height > >
       >
    > asset_object_multi_index_type;
    typedef generic_index<asset_object, asset_object_multi_index_type> asset_index;
