@@ -35,14 +35,24 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    KHC_WASSERT(o.fee.amount >= 0,"invalid asset investment fee amount");
    KHC_WASSERT(o.amount.amount > 0,"invalid investment amount:${investment_amount}",
                ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
-   const asset_object& mia = d.get(o.investment_asset_id);
 
    asset account_khd_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
    KHC_WASSERT( account_khd_asset >= o.amount,"account amount(${account_amount}) less than inverstment amount(${investment_amount})",
                 ("account_amount",khc::khc_amount_to_string(account_khd_asset.amount.value,khd_asset_object.precision))
                 ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
+
+   const asset_object& asset_obj = d.get(o.investment_asset_id);
+   KHC_WASSERT(!asset_obj.is_market_issued());
+   KHC_WASSERT(o.investment_asset_id != asset_id_type(0),"can't investment ${asset}",("asset",GRAPHENE_SYMBOL));
+
    const auto& dpo = d.get_dynamic_global_properties();
-   //if(dpo.head_block_number > mia.proj_options.financing_cycle)//XJTODO need start block,add end time check
+   const auto& po = d.get_global_properties();
+   uint32_t start_block_num = asset_obj.proj_options.ref_block_num;
+   uint32_t end_block_num = asset_obj.proj_options.ref_block_num + (asset_obj.proj_options.financing_cycle/po.parameters.block_interval);
+   uint32_t curr_block_num = dpo.head_block_number;
+   KHC_WASSERT(curr_block_num>=asset_obj.proj_options.ref_block_num&&curr_block_num<=end_block_num,
+               "current block num(${curr_block_num}) need betweent [${start_block_num},${end_block_num}]",
+               ("curr_block_num",curr_block_num)("start_block_num",start_block_num)("end_block_num",end_block_num));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }

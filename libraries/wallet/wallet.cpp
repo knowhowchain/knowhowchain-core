@@ -1680,6 +1680,8 @@ public:
    {try {
        account_object from_account = get_account(owner_account);
        asset_object asset_obj = get_asset(asset);
+       KHC_WASSERT(!asset_obj.is_market_issued());
+       KHC_WASSERT(asset_obj.id != asset_id_type(0),"can't investment ${asset}",("asset",GRAPHENE_SYMBOL));
 
        asset_investment_operation asset_investment_op;
        asset_investment_op.account_id = from_account.id;
