@@ -279,7 +279,7 @@ struct get_impacted_account_visitor
    {
        _impacted.insert( op.fee_payer() );
    }
-   void operator()( const reback_investment_operation& op )
+   void operator()( const refund_investment_operation& op )
       {
           _impacted.insert( op.fee_payer() );
       }

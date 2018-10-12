@@ -101,7 +101,7 @@ namespace graphene { namespace chain {
             power_convert_operation,
             asset_investment_operation,
             issue_asset_and_get_financing_operation,
-            reback_investment_operation
+            refund_investment_operation
          > operation;
 
    /// @} // operations group

@@ -1803,19 +1803,19 @@ public:
         return _remote_db->list_account_investment(get_account(account).id);
     }
 
-    signed_transaction reback_investment(string owner_account,
+    signed_transaction refund_investment(string owner_account,
                                                string asset,
                                                bool broadcast)
    {try {
        account_object from_account = get_account(owner_account);
        asset_object asset_obj = get_asset(asset);
 
-       reback_investment_operation reback_investment_op;
-       reback_investment_op.account_id = from_account.id;
-       reback_investment_op.investment_asset_id = asset_obj.id;
+       refund_investment_operation refund_investment_op;
+       refund_investment_op.account_id = from_account.id;
+       refund_investment_op.investment_asset_id = asset_obj.id;
 
        signed_transaction tx;
-       tx.operations.push_back(reback_investment_op);
+       tx.operations.push_back(refund_investment_op);
        set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
        tx.validate();
 
@@ -3907,9 +3907,9 @@ vector<asset_investment_object> wallet_api::list_account_investment(string accou
 {
     return my->list_account_investment(account);
 }
-signed_transaction wallet_api::reback_investment(string owner_account,string asset,bool broadcast)
+signed_transaction wallet_api::refund_investment(string owner_account,string asset,bool broadcast)
 {
-    return my->reback_investment(owner_account,asset,broadcast);
+    return my->refund_investment(owner_account,asset,broadcast);
 }
 
 signed_transaction wallet_api::create_worker(

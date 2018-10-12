@@ -101,7 +101,7 @@ void_result issue_asset_and_get_financing_evaluator::do_apply( const issue_asset
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result reback_investment_evaluator::do_evaluate( const reback_investment_operation& o )
+void_result refund_investment_evaluator::do_evaluate( const refund_investment_operation& o )
 { try {
    database& d = db();
    auto& gp = d.get_global_properties();
@@ -136,13 +136,13 @@ void_result reback_investment_evaluator::do_evaluate( const reback_investment_op
    }
 
    KHC_WASSERT(asset_dynamic.financing_current_supply - total_investment >= 0,
-               "asset financing_current_supply(${crrent}) have not enough to reback account(${account}) total_investment(${investment}).",
+               "asset financing_current_supply(${crrent}) have not enough to refund account(${account}) total_investment(${investment}).",
                ("crrent",asset_dynamic.financing_current_supply)("account",o.account_id)("investment",total_investment));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result reback_investment_evaluator::do_apply( const reback_investment_operation& o )
+void_result refund_investment_evaluator::do_apply( const refund_investment_operation& o )
 { try {
    database& d = db();
    const asset_object& asset_o = d.get(o.investment_asset_id);

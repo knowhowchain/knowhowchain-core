@@ -54,12 +54,12 @@ struct issue_asset_and_get_financing_operation : public base_operation
 };
 
 /**
-* @brief This operation is used to reback investment
+* @brief This operation is used to refund investment
 * @ingroup operations
 *
-* account reback investment
+* account refund investment
 */
-struct reback_investment_operation : public base_operation
+struct refund_investment_operation : public base_operation
 {
   struct fee_parameters_type { share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
@@ -71,7 +71,7 @@ struct reback_investment_operation : public base_operation
   /// The account to investment
   account_id_type account_id;
 
-  /// The asset to reback investment
+  /// The asset to refund investment
   asset_id_type investment_asset_id;
 
   account_id_type fee_payer()const { return account_id; }
@@ -88,6 +88,6 @@ FC_REFLECT( graphene::chain::issue_asset_and_get_financing_operation::fee_parame
 FC_REFLECT( graphene::chain::issue_asset_and_get_financing_operation,
             (fee)(issue)(investment_asset_id)(investment_ids) )
 
-FC_REFLECT( graphene::chain::reback_investment_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::reback_investment_operation,
+FC_REFLECT( graphene::chain::refund_investment_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::refund_investment_operation,
             (fee)(account_id)(investment_asset_id) )
