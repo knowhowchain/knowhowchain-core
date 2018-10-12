@@ -3,7 +3,7 @@
 #include <graphene/chain/protocol/asset.hpp>
 
 uint64_t g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
-uint64_t g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
+uint64_t g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_PROJECT_CYCLE_UNIT;
 
 namespace graphene { namespace khc {
 
