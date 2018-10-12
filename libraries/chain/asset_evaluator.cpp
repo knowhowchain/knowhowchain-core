@@ -56,13 +56,13 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    FC_ASSERT(!(op.bitasset_opts.valid() && op.project_asset_opts.valid()), "bitasset and projasset cannot be set at the same time.");
    if (op.project_asset_opts.valid())
    {
-       auto min_power = khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount).first;
-       KHC_WASSERT(min_power <= *op.power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", min_power.value)("power", *op.power));
+       auto req_power = khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount);
+       KHC_WASSERT(req_power <= *op.power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", req_power.value)("power", *op.power));
 
        KHC_WASSERT(op.project_asset_opts->name.size() != 0, "Asset must have a project name.");
        const auto &assets_by_projasset_name = d.get_index_type<asset_index>().indices().get<by_projasset_name>();
        auto itr = assets_by_projasset_name.find(op.project_asset_opts->name);
-       KHC_WASSERT(itr == assets_by_projasset_name.end(), "Asset with that project name already exists!");
+       KHC_WASSERT(itr == assets_by_projasset_name.end(), "${prj_name} is already exists!", ("prj_name", op.project_asset_opts->name));
 
        KHC_WASSERT(op.project_asset_opts->ref_block_num >= d.get_dynamic_global_properties().head_block_number,
                    "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->ref_block_num)("height", d.get_dynamic_global_properties().head_block_number));

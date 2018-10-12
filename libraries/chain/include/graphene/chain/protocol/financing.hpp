@@ -47,7 +47,7 @@ struct issue_asset_and_get_financing_operation : public base_operation
    asset_id_type investment_asset_id;
 
    /// investment account
-   flat_set<account_id_type> investment_ids;
+   flat_set<asset_investment_id_type> investment_ids;
 
    account_id_type fee_payer()const { return issue; }
    void validate()const;

@@ -75,8 +75,15 @@ share_type khc_amount_from_string(string amount_string,uint8_t precision)
    } FC_CAPTURE_AND_RETHROW( (amount_string) )
 }
 
-std::pair<share_type, share_type> power_required_for_finacing(share_type minimum_financing_amount)
+share_type power_required_for_finacing(share_type minimum_financing_amount)
 {
+    share_type convert_ratio = KHC_POWER_CONVERT_KHD_RATIO * graphene::chain::asset::scaled_precision(KHD_PRECISION_DIGITS);
+    share_type required_power = minimum_financing_amount / convert_ratio;
+    if (minimum_financing_amount % convert_ratio != 0)
+        ++required_power;
+    required_power *= graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS);
+    return required_power;
+    /*
     if (minimum_financing_amount <= KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA)
         return std::make_pair(KHC_POWER_GRADE_0_MIN_POWER, KHC_POWER_GRADE_0_MAX_POWER);
     if (minimum_financing_amount <= KHC_POWER_GRADE_1_MAX_FUNDRAISING_QUOTA)
@@ -90,6 +97,7 @@ std::pair<share_type, share_type> power_required_for_finacing(share_type minimum
     if (minimum_financing_amount <= KHC_POWER_GRADE_5_MAX_FUNDRAISING_QUOTA)
         return std::make_pair(KHC_POWER_GRADE_5_MIN_POWER, KHC_POWER_GRADE_5_MAX_POWER);
     return std::make_pair(KHC_POWER_GRADE_6_MIN_POWER, KHC_POWER_GRADE_6_MAX_POWER);
+    */
 }
 
 }}

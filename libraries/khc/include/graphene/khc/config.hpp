@@ -7,6 +7,7 @@
 #define KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE 36
 #define KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO 0
 #define KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO 49
+#define KHC_100_PERCENT                 10000
 #define KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE 1
 #define KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE 4
 
@@ -20,6 +21,10 @@ extern uint64_t g_khc_project_asset_financing_cycle_unit;
 extern uint64_t g_khc_project_asset_project_cycle_unit;
 
 #define KHC_POWER_PRECISION_DIGITS 8
+
+#define KHC_POWER_CONVERT_KHD_RATIO 100
+#define KHD_PRECISION_DIGITS 4
+/*
 #define KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA 1000
 #define KHC_POWER_GRADE_0_MIN_POWER 51 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
 #define KHC_POWER_GRADE_0_MAX_POWER 99 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
@@ -47,3 +52,4 @@ extern uint64_t g_khc_project_asset_project_cycle_unit;
 //#define KHC_POWER_GRADE_6_MAX_FUNDRAISING_QUOTA int64_t(1000000000000000000ll)
 #define KHC_POWER_GRADE_6_MIN_POWER 50000 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
 #define KHC_POWER_GRADE_6_MAX_POWER 0 //0 means No upper limit
+*/

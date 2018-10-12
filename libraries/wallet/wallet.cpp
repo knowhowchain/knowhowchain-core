@@ -1331,19 +1331,22 @@ public:
       {
           KHC_WASSERT(project_asset_opts->name.size() != 0, "Asset must have a project name.");
 
-          KHC_WASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "Asset with that project name already exists!");
+          KHC_WASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "${prj_name} is already exists!", ("prj_name", project_asset_opts->name));
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
-          const auto required_power_range = khc::power_required_for_finacing(project_asset_opts->minimum_financing_amount);
-          KHC_WASSERT( required_power_range.first < *power, "Power is not enough!");
-          if (*power > required_power_range.second && required_power_range.second != 0)
-              power = required_power_range.second;
+          const auto required_power = khc::power_required_for_finacing(project_asset_opts->minimum_financing_amount);
+          KHC_WASSERT(required_power < *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
+          idump((power)(required_power)(project_asset_opts->minimum_financing_amount));
+          power = required_power;
 
-          KHC_WASSERT( project_asset_opts->project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE &&
-                       project_asset_opts->project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE);
+          KHC_WASSERT(project_asset_opts->project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE &&
+                          project_asset_opts->project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE,
+                      "project_cycle must be in range (${min_proj_cycle}, ${max_proj_cycle})", ("min_proj_cycle", KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE)("max_proj_cycle", KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE));
           project_asset_opts->project_cycle *= g_khc_project_asset_project_cycle_unit;
 
           KHC_WASSERT( project_asset_opts->financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE &&
-                       project_asset_opts->financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE);
+                       project_asset_opts->financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE,
+                      "financing_cycle must be in range (${min_finac_cycle}, ${max_finac_cycle})", ("min_finac_cycle", KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE)("max_finac_cycle", KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE)
+                      );
           project_asset_opts->financing_cycle *= g_khc_project_asset_financing_cycle_unit;
 
 //          fc::time_point time_diff =  project_asset_opts->start_financing_time - fc::time_point::now().time_since_epoch();
@@ -2429,11 +2432,10 @@ public:
       issue_asset_and_get_financing_operation issue_op;
       std::transform(asset_investments.begin(), asset_investments.end(), std::inserter(issue_op.investment_ids, issue_op.investment_ids.begin()),
                      [](const asset_investment_object& a) { return a.id; });
-
+    
       issue_op.issue = asset_obj.issuer;
       issue_op.investment_asset_id = asset_obj.id;
       
-
       signed_transaction tx;
       tx.operations.push_back(issue_op);
       set_operation_fees(tx,_remote_db->get_global_properties().parameters.current_fees);
