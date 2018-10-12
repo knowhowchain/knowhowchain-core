@@ -31,6 +31,8 @@ class asset_investment_evaluator;
 class issue_asset_and_get_financing_evaluator;
 struct asset_investment_operation;
 struct issue_asset_and_get_financing_operation;
+class reback_investment_evaluator;
+struct reback_investment_operation;
 
 class asset_investment_evaluator : public evaluator<asset_investment_evaluator>
 {
@@ -48,5 +50,14 @@ class issue_asset_and_get_financing_evaluator : public evaluator<issue_asset_and
 
         void_result do_evaluate( const issue_asset_and_get_financing_operation& op );
         void_result do_apply( const issue_asset_and_get_financing_operation& op );
+};
+
+class reback_investment_evaluator : public evaluator<reback_investment_evaluator>
+{
+    public:
+        typedef reback_investment_operation operation_type;
+
+        void_result do_evaluate( const reback_investment_operation& op );
+        void_result do_apply( const reback_investment_operation& op );
 };
 } } // graphene::chain

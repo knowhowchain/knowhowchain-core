@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2015-2017 Cryptonomex, Inc., and contributors.
  *
@@ -188,7 +189,7 @@ int main(int argc, char** argv) {
             ("help,h", "Print this help message and exit.")
             ("data-dir,d", bpo::value<boost::filesystem::path>()->default_value("witness_node_data_dir"), "Directory containing databases, configuration file, etc.")
             ("version,v", "Display version information")
-            ("debug", "for inner test")
+            ("test", "for inner test")
             ;
 
       bpo::variables_map options;

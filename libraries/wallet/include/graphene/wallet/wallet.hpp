@@ -1459,6 +1459,17 @@ class wallet_api
       vector<asset_investment_object> list_account_investment(string account);
 
       /**
+      * reback investment when the project failure
+      *
+      * @brief reback_investment
+      * @param owner_account the name or id of the account which investment
+      * @param asset is the name or id of the asset which investment by account
+      * @param broadcast
+      * @return
+      */
+     signed_transaction reback_investment(string owner_account,string asset,bool broadcast = false);
+
+      /**
        * Update a witness object owned by the given account.
        *
        * @param witness The name of the witness's owner account.  Also accepts the ID of the owner account or the ID of the witness.
@@ -1939,4 +1950,5 @@ FC_API( graphene::wallet::wallet_api,
         (list_asset_investment)
         (list_account_investment)
         (issue_asset_and_get_financing)
+        (reback_investment)
       )

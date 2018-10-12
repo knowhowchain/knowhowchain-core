@@ -42,6 +42,7 @@
 #include <graphene/egenesis/egenesis.hpp>
 #include <graphene/utilities/key_conversion.hpp>
 #include <graphene/wallet/wallet.hpp>
+#include <graphene/khc/config.hpp>
 
 #include <fc/interprocess/signals.hpp>
 #include <boost/program_options.hpp>
@@ -86,7 +87,8 @@ int main( int argc, char** argv )
          ("daemon,d", "Run the wallet in daemon mode" )
          ("wallet-file,w", bpo::value<string>()->implicit_value("wallet.json"), "wallet to load")
          ("chain-id", bpo::value<string>(), "chain ID to connect to")
-         ("version,v", "Display version information");
+         ("version,v", "Display version information")
+         ("test", "for inner test");
 
 
       bpo::variables_map options;
@@ -130,6 +132,17 @@ int main( int argc, char** argv )
       cfg.loggers.front().appenders = {"default"};
       cfg.loggers.back().level = fc::log_level::debug;
       cfg.loggers.back().appenders = {"rpc"};
+
+      if( options.count("test") )
+      {
+         g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_TEST_FINANCING_CYCLE_UNIT;
+         g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_TEST_PROJECT_CYCLE_UNIT;
+      }
+      else
+      {
+         g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
+         g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_PROJECT_CYCLE_UNIT;
+      }
 
       fc::ecc::private_key committee_private_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("null_key")));
 

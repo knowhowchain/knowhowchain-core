@@ -101,4 +101,76 @@ void_result issue_asset_and_get_financing_evaluator::do_apply( const issue_asset
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
+void_result reback_investment_evaluator::do_evaluate( const reback_investment_operation& o )
+{ try {
+   database& d = db();
+   auto& gp = d.get_global_properties();
+
+   const asset_object& asset_o = d.get(o.investment_asset_id);
+   const asset_dynamic_data_object& asset_dynamic = asset_o.dynamic_asset_data_id(d);
+   const auto& dpo = d.get_dynamic_global_properties();
+
+   auto diff = asset_o.proj_options.project_cycle / gp.parameters.block_interval;
+   auto exp_block_number = asset_o.proj_options.ref_block_num + diff;
+   KHC_WASSERT(exp_block_number < dpo.head_block_number,"exp_block(${exp_block}) now_block(${now_block}) project has not expired!",
+               ("exp_blokc",exp_block_number)("now_block",dpo.head_block_number));
+   KHC_WASSERT(asset_dynamic.financing_confidential_supply < asset_o.proj_options.minimum_financing_amount,
+               "financing_confidential_supply(${confidential} large than minimum_financing_amount(${minimum}),project has success already.",
+               ("confidential",asset_dynamic.financing_confidential_supply)("minimum",asset_o.proj_options.minimum_financing_amount));
+
+   const auto& idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
+   auto range = idx.equal_range(o.account_id);
+   vector<asset_investment_object> vec;
+   std::for_each(range.first,range.second,
+                 [&vec](const asset_investment_object& obj){
+       vec.emplace_back(obj);
+   });
+
+   KHC_WASSERT(vec.size() > 0,"this account has not invest any asset.");
+   share_type total_investment(0);
+   auto iter = vec.begin();
+   for(;iter!=vec.begin();iter++){
+       if((*iter).investment_asset_id == o.investment_asset_id && (*iter).return_financing_flag == false){
+            total_investment += (*iter).investment_khd_amount.amount;
+       }
+   }
+
+   KHC_WASSERT(asset_dynamic.financing_current_supply - total_investment >= 0,
+               "asset financing_current_supply(${crrent}) have not enough to reback account(${account}) total_investment(${investment}).",
+               ("crrent",asset_dynamic.financing_current_supply)("account",o.account_id)("investment",total_investment));
+
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result reback_investment_evaluator::do_apply( const reback_investment_operation& o )
+{ try {
+   database& d = db();
+   const asset_object& asset_o = d.get(o.investment_asset_id);
+   const asset_dynamic_data_object& asset_dynamic = asset_o.dynamic_asset_data_id(d);
+
+   const auto& idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
+   auto range = idx.equal_range(o.account_id);
+   vector<asset_investment_object> vec;
+   std::for_each(range.first,range.second,
+                 [&vec](const asset_investment_object& obj){
+       vec.emplace_back(obj);
+   });
+
+   auto iter = vec.begin();
+   for(;iter!=vec.begin();iter++){
+       if((*iter).investment_asset_id == o.investment_asset_id && (*iter).return_financing_flag == false){
+           d.modify( asset_dynamic, [&]( asset_dynamic_data_object& data ){
+                data.financing_current_supply -= (*iter).investment_khd_amount.amount;
+           });
+
+           d.adjust_balance(o.account_id,(*iter).investment_khd_amount);
+
+           d.modify( *iter, [&]( asset_investment_object& s ){
+                s.return_financing_flag = true;
+           });
+       }
+   }
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
 } } // graphene::chain

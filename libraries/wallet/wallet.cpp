@@ -1803,6 +1803,25 @@ public:
         return _remote_db->list_account_investment(get_account(account).id);
     }
 
+    signed_transaction reback_investment(string owner_account,
+                                               string asset,
+                                               bool broadcast)
+   {try {
+       account_object from_account = get_account(owner_account);
+       asset_object asset_obj = get_asset(asset);
+
+       reback_investment_operation reback_investment_op;
+       reback_investment_op.account_id = from_account.id;
+       reback_investment_op.investment_asset_id = asset_obj.id;
+
+       signed_transaction tx;
+       tx.operations.push_back(reback_investment_op);
+       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
+       tx.validate();
+
+       return sign_transaction( tx, broadcast );
+   } FC_CAPTURE_AND_RETHROW((owner_account)(asset)(broadcast))}
+
 
    signed_transaction create_witness(string owner_account,
                                      string url,
@@ -3887,6 +3906,10 @@ vector<asset_investment_object> wallet_api::list_asset_investment(string asset)
 vector<asset_investment_object> wallet_api::list_account_investment(string account)
 {
     return my->list_account_investment(account);
+}
+signed_transaction wallet_api::reback_investment(string owner_account,string asset,bool broadcast)
+{
+    return my->reback_investment(owner_account,asset,broadcast);
 }
 
 signed_transaction wallet_api::create_worker(
