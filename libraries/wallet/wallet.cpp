@@ -259,6 +259,93 @@ struct op_prototype_visitor
    }
 };
 
+template<typename T, typename F>
+class by_name_selector
+{
+  public:
+    by_name_selector(bool& valid, F f, T& st, const char *name): t(st), f(f), name(name), valid(valid)
+    {
+    }
+
+    template<typename Mem, typename Type, Mem Type::* mem_ptr>
+    void operator()(const char* mem_name) const
+    {
+        if(name == mem_name)
+        {
+            f(&(t.*mem_ptr));
+            valid = true;
+        }
+    }
+
+  private:
+    T& t;
+    F f;
+    std::string name;
+    bool& valid;
+};
+
+template<typename... T> class type_list;
+
+template<typename T1, typename... Rest>
+class type_list<T1, Rest...>
+{
+  public:
+    type_list(T1& t1, Rest... r) : t(t1), rest(r...)
+    {
+    }
+
+    template<typename F>
+    bool visit_mem(const char* mem_name, F f)
+    {
+        bool got_mem = false;
+        fc::reflector<T1>::visit(by_name_selector<T1, F>(got_mem, f, t, mem_name));
+        if(got_mem)
+        {
+            return true;
+        }
+        return rest.visit_mem(mem_name, f);
+    }
+        
+  private:
+    T1& t;
+    type_list<Rest... > rest;
+};
+
+template<>
+class type_list<>
+{
+  public:    
+    template<typename F>
+    bool visit_mem(const char* mem_name, F f)
+    {
+        return false;
+    }
+};
+
+template<typename To, typename From>
+class copy_visitor
+{
+  public:
+    copy_visitor(To& dest, From& src) : to(dest), from(src)
+    {
+    }
+
+    template<typename Mem, typename T, Mem (T::*mem_ptr)> 
+    void operator()(const char *mem_name) const
+    {
+        auto assign = [&](void* rh)->void
+        {
+            auto p = static_cast<Mem*>(rh);
+            to.*mem_ptr = *p;
+        };
+        from.visit_mem(mem_name, assign);
+    }
+    
+  private:
+    To& to;
+    From& from;
+};
+
 class wallet_api_impl
 {
 public:
@@ -3402,6 +3489,19 @@ asset_bitasset_data_object wallet_api::get_bitasset_data(string asset_name_or_id
    auto asset = get_asset(asset_name_or_id);
    FC_ASSERT(asset.is_market_issued() && asset.bitasset_data_id);
    return my->get_object<asset_bitasset_data_object>(*asset.bitasset_data_id);
+}
+
+khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
+{
+   auto asset = get_asset(asset_name_or_id);
+   auto asset_dny_data = my->get_object<asset_dynamic_data_object>(asset.dynamic_asset_data_id);
+   khcasset_data khc_data;
+   detail::type_list<decltype(asset), decltype(asset.proj_options), decltype(asset_dny_data)>
+       list(asset, asset.proj_options, asset_dny_data);
+   fc::reflector<khcasset_data>::visit(
+       detail::copy_visitor<khcasset_data, decltype(list)>(khc_data, list));
+   khc_data.end_financing_time = asset.proj_options.start_financing_time + asset.proj_options.financing_cycle;
+   return khc_data;
 }
 
 account_id_type wallet_api::get_account_id(string account_name_or_id) const

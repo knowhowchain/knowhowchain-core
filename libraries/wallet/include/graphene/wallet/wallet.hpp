@@ -295,6 +295,33 @@ struct account_history_operation_detail {
    vector<operation_detail_ex>  details;
 };
 
+// return type of get_khcasset_data
+struct khcasset_data {
+    /// Ticker symbol for this asset, i.e. "USD"
+    string symbol;
+    /// ID of the account which issued this asset.
+    account_id_type issuer;
+    
+    /// project name, must be unique.
+    std::string name;
+    uint8_t  type = project_asset_options::project_type::other;
+    ///at least 1 month, up to 36 months
+    uint64_t project_cycle = 0;
+    ///Community related address
+    std::string url;
+    ///0~49
+    uint16_t transfer_ratio = 0;
+    /// Achieving a minimum financing amount is considered a successful financing
+    share_type minimum_financing_amount = 0;
+    fc::time_point_sec  start_financing_time;
+    fc::time_point_sec  end_financing_time;
+    ///Up to 4 weeks
+    uint64_t  financing_cycle=0;
+    
+    share_type financing_current_supply;
+    share_type financing_confidential_supply;
+};
+
 /**
  * This wallet assumes it is connected to the database server with a high-bandwidth, low-latency connection and
  * performs minimal caching. This API could be provided locally to be used by a web interface.
@@ -449,6 +476,12 @@ class wallet_api
        * @returns the BitAsset-specific data for this asset
        */
       asset_bitasset_data_object        get_bitasset_data(string asset_name_or_id)const;
+
+      /** Returns the KHCAsset-specific data for a given asset.
+       * @param asset_name_or_id the symbol or id of the KHCAsset in question
+       * @returns the KHCAsset-specific data for this asset
+       */
+      khcasset_data                     get_khcasset_data(string asset_name_or_id) const;
 
       /** Lookup the id of a named account.
        * @param account_name_or_id the name of the account to look up
@@ -1760,6 +1793,22 @@ FC_REFLECT(graphene::wallet::operation_detail_ex,
 FC_REFLECT( graphene::wallet::account_history_operation_detail,
         (total_count)(result_count)(details))
 
+FC_REFLECT( graphene::wallet::khcasset_data,
+            (symbol)
+            (issuer)
+            (name)
+            (type)
+            (project_cycle)
+            (url)
+            (transfer_ratio)
+            (minimum_financing_amount)
+            (start_financing_time)
+            (end_financing_time)
+            (financing_cycle)
+            (financing_current_supply)
+            (financing_confidential_supply)
+)    
+
 FC_API( graphene::wallet::wallet_api,
         (help)
         (gethelp)
@@ -1808,6 +1857,7 @@ FC_API( graphene::wallet::wallet_api,
         (issue_asset)
         (get_asset)
         (get_bitasset_data)
+        (get_khcasset_data)
         (fund_asset_fee_pool)
         (claim_asset_fee_pool)
         (reserve_asset)
