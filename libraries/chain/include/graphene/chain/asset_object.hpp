@@ -70,6 +70,23 @@ namespace graphene { namespace chain {
          share_type financing_confidential_supply;
    };
 
+   /**
+    *  @brief Record the token issued by the issuer to the investor
+    *  @ingroup object
+    *  @ingroup implementation
+    */
+   class investment_dynamic_data_object : public abstract_object<investment_dynamic_data_object>
+   {
+      public:
+         static const uint8_t space_id = implementation_ids;
+         static const uint8_t type_id  = impl_investment_dynamic_data_type;
+
+         /// The number of shares currently in existence
+         share_type current_supply;
+         share_type confidential_supply; ///< total asset held in confidential balances
+         asset_id_type investment_asset;
+         std::map<account_id_type, std::pair<bool, share_type>> investment_tokens;
+   };
    class asset_investment_object : public abstract_object<asset_investment_object>
    {
    public:
@@ -315,6 +332,15 @@ namespace graphene { namespace chain {
 
    typedef generic_index<asset_investment_object,asset_investment_object_multi_index_type> asset_investment_index;
 
+   typedef multi_index_container<
+        investment_dynamic_data_object,
+        indexed_by<
+            ordered_unique< tag<by_id>, member< object, object_id_type, &object::id > >,
+            ordered_unique< tag<by_asset>, member< investment_dynamic_data_object, asset_id_type, &investment_dynamic_data_object::investment_asset > >
+            >
+    > investment_dynamic_data_object_multi_index_type;
+
+   typedef generic_index<investment_dynamic_data_object,investment_dynamic_data_object_multi_index_type> investment_dynamic_data_index;
 } } // graphene::chain
 
 FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::object),
@@ -338,6 +364,13 @@ FC_REFLECT_DERIVED( graphene::chain::asset_bitasset_data_object, (graphene::db::
                     (is_prediction_market)
                     (settlement_price)
                     (settlement_fund)
+                  )
+
+FC_REFLECT_DERIVED( graphene::chain::investment_dynamic_data_object, (graphene::db::object),
+                    (current_supply)
+                    (confidential_supply)
+                    (investment_asset)
+                    (investment_tokens)
                   )
 
 FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),

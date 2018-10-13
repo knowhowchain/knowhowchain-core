@@ -25,6 +25,8 @@
 #include <graphene/chain/financing_evaluator.hpp>
 #include <graphene/chain/database.hpp>
 #include <graphene/khc/util.hpp>
+#include <graphene/khc/config.hpp>
+#include <graphene/chain/is_authorized_asset.hpp>
 
 namespace graphene { namespace chain {
 
@@ -48,10 +50,10 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
 
    const auto& dpo = d.get_dynamic_global_properties();
    const auto& po = d.get_global_properties();
-   uint32_t start_block_num = asset_obj.proj_options.ref_block_num;
-   uint32_t end_block_num = asset_obj.proj_options.ref_block_num + (asset_obj.proj_options.financing_cycle/po.parameters.block_interval);
+   uint32_t start_block_num = asset_obj.proj_options.start_financing_block_num;
+   uint32_t end_block_num = asset_obj.proj_options.start_financing_block_num + (asset_obj.proj_options.financing_cycle/po.parameters.block_interval);
    uint32_t curr_block_num = dpo.head_block_number;
-   KHC_WASSERT(curr_block_num>=asset_obj.proj_options.ref_block_num&&curr_block_num<=end_block_num,
+   KHC_WASSERT(curr_block_num>=asset_obj.proj_options.start_financing_block_num&&curr_block_num<=end_block_num,
                "current block num(${curr_block_num}) need betweent [${start_block_num},${end_block_num}]",
                ("curr_block_num",curr_block_num)("start_block_num",start_block_num)("end_block_num",end_block_num));
 
@@ -88,16 +90,75 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result issue_asset_and_get_financing_evaluator::do_evaluate( const issue_asset_and_get_financing_operation& o )
+void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_to_investors_operation& o )
 { try {
    database& d = db();
+
+   KHC_WASSERT(o.fee.amount >= 0, "invalid issue_asset_and_get_financing fee amount.");
+
+   const asset_object& investment_asset_object = o.investment_asset_id(d);
+   KHC_WASSERT( !investment_asset_object.is_market_issued(), "Cannot manually issue a market-issued asset." );
+   KHC_WASSERT( investment_asset_object.proj_options.name.size() != 0, "No project information." );
+   KHC_WASSERT( investment_asset_object.proj_options.transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "No project information." );
+   ///LIUTODO KHC_WASSERT(investment_asset_object.proj_options.end_financing_block_num !=0, "Financing has not ended or has failed." );
+
+   total_issue = (fc::uint128_t(investment_asset_object.options.max_supply.value) * investment_asset_object.proj_options.transfer_ratio / KHC_100_PERCENT).to_uint64();
+
+   asset_dyn_data = &investment_asset_object.dynamic_asset_data_id(d);
+   const auto &idx = d.get_index_type<asset_investment_index>().indices().get<by_asset>();
+   auto range = idx.equal_range(o.investment_asset_id);
+   share_type total_investment = 0;
+   share_type total_issue_tmp = 0;
+   std::for_each(range.first, range.second,
+                 [&](const asset_investment_object &obj) {
+                     KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
+                     total_investment += obj.investment_khd_amount.amount;
+                     this->investment_objects.push_back(&obj);
+                     share_type issue_amount = (fc::uint128_t(total_issue.value) * obj.investment_khd_amount.amount.value / asset_dyn_data->financing_confidential_supply.value).to_uint64();
+                     this->issue_amounts.push_back(issue_amount);
+                     total_issue_tmp += issue_amount;
+                 });
+
+   KHC_WASSERT(total_issue_tmp <= total_issue, "Financing failed, Calculated value：${total_to_issue}, total_issue: ${total_issue}.",
+               ("total_to_issue", total_issue_tmp)("total_issue", total_issue));
+   issue_amounts[issue_amounts.size()] += (total_issue - total_issue_tmp);
+
+   KHC_WASSERT(total_investment == asset_dyn_data->financing_confidential_supply, "The total amount of financing is not right.total_investment(${total_investment}) !=financing_confidential_supply(${confidential_supply})",
+               ("total_investment", total_investment)("total_investment", asset_dyn_data->financing_confidential_supply));
+   KHC_WASSERT((asset_dyn_data->current_supply + total_issue) <= investment_asset_object.options.max_supply,
+               "Exceeding the maximum supply current_supply($current_supply{}) + total_issue(${total_issue}) != max_supply(${max_supply})",
+               ("current_supply", asset_dyn_data->current_supply)("total_issue", total_issue)("max_supply", investment_asset_object.options.max_supply));
+   KHC_WASSERT(asset_dyn_data->financing_confidential_supply == asset_dyn_data->financing_current_supply,
+               "financing_confidential_supply(${financing_confidential_supply}) != financing_current_supply(${financing_current_supply})",
+               ("financing_confidential_supply", asset_dyn_data->financing_confidential_supply)("financing_current_supply", asset_dyn_data->financing_current_supply));
+
+   const auto& assets_by_symbol = d.get_index_type<asset_index>().indices().get<by_symbol>();
+   vector<optional<asset_object> > result;
+   auto itr = assets_by_symbol.find(KHD_ASSET_SYMBOL);
+   KHC_WASSERT(itr != assets_by_symbol.end(), "No " KHD_ASSET_SYMBOL ".");
+   khd_asset_object = &(*itr);
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result issue_asset_and_get_financing_evaluator::do_apply( const issue_asset_and_get_financing_operation& o )
+void_result issue_asset_to_investors_evaluator::do_apply( const issue_asset_to_investors_operation& o )
 { try {
    database& d = db();
+
+   d.create<investment_dynamic_data_object>([&](investment_dynamic_data_object &io) {
+       io.current_supply = total_issue;
+       io.confidential_supply = total_issue;
+       io.investment_asset =  o.investment_asset_id;
+       for(decltype(investment_objects.size()) i = 0; i < investment_objects.size(); ++i) {
+           io.investment_tokens[investment_objects[i]->investment_account_id] = std::make_pair(true, issue_amounts[i]);
+       }
+   });
+
+   db().modify(*asset_dyn_data, [&](asset_dynamic_data_object &data) {
+       data.current_supply += total_issue;
+       data.financing_current_supply = 0;
+   });
+
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
@@ -111,7 +172,7 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
    const auto& dpo = d.get_dynamic_global_properties();
 
    auto diff = asset_o.proj_options.project_cycle / gp.parameters.block_interval;
-   auto exp_block_number = asset_o.proj_options.ref_block_num + diff;
+   auto exp_block_number = asset_o.proj_options.start_financing_block_num + diff;
    KHC_WASSERT(exp_block_number < dpo.head_block_number,"exp_block(${exp_block}) now_block(${now_block}) project has not expired!",
                ("exp_blokc",exp_block_number)("now_block",dpo.head_block_number));
    KHC_WASSERT(asset_dynamic.financing_confidential_supply < asset_o.proj_options.minimum_financing_amount,

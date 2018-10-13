@@ -184,7 +184,7 @@ void database::initialize_evaluators()
    register_evaluator<asset_claim_pool_evaluator>();
    register_evaluator<power_convert_evaluator>();
    register_evaluator<asset_investment_evaluator>();
-   register_evaluator<issue_asset_and_get_financing_evaluator>();
+   register_evaluator<issue_asset_to_investors_evaluator>();
    register_evaluator<refund_investment_evaluator>();
 }
 
@@ -221,6 +221,7 @@ void database::initialize_indexes()
    add_index< primary_index<account_power_index                         > >();
    add_index< primary_index<account_locked_power_index            > >();
    add_index< primary_index<asset_investment_index                        > >();
+   add_index< primary_index<investment_dynamic_data_index               > >();
    add_index< primary_index<asset_bitasset_data_index                     > >();
    add_index< primary_index<simple_index<global_property_object          >> >();
    add_index< primary_index<simple_index<dynamic_global_property_object  >> >();

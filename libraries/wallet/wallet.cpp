@@ -1334,7 +1334,7 @@ public:
           KHC_WASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "${prj_name} is already exists!", ("prj_name", project_asset_opts->name));
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
           const auto required_power = khc::power_required_for_finacing(project_asset_opts->minimum_financing_amount);
-          KHC_WASSERT(required_power < *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
+          KHC_WASSERT(required_power <= *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
           idump((power)(required_power)(project_asset_opts->minimum_financing_amount));
           power = required_power;
 
@@ -1349,15 +1349,14 @@ public:
                       );
           project_asset_opts->financing_cycle *= g_khc_project_asset_financing_cycle_unit;
 
-//          fc::time_point time_diff =  project_asset_opts->start_financing_time - fc::time_point::now().time_since_epoch();
-//          KHC_WASSERT(time_diff.sec_since_epoch() > 0);
-//          project_asset_opts->ref_block_num = get_dynamic_global_properties().head_block_number +
-//                  time_diff.sec_since_epoch() / get_global_properties().parameters.block_interval;
-//          idump((project_asset_opts->ref_block_num));
-          if (project_asset_opts->ref_block_num == 0)
-              project_asset_opts->ref_block_num = get_dynamic_global_properties().head_block_number + 1;
-          KHC_WASSERT(project_asset_opts->ref_block_num >= get_dynamic_global_properties().head_block_number,
-                      "The specified height ${sheight} is lower than the current height ${height}", ("sheight", project_asset_opts->ref_block_num)("height", get_dynamic_global_properties().head_block_number));
+          uint32_t head_block_number = get_dynamic_global_properties().head_block_number;
+          if (project_asset_opts->start_financing_block_num == 0)
+              project_asset_opts->start_financing_block_num = head_block_number + 1;
+          KHC_WASSERT(project_asset_opts->start_financing_block_num >= head_block_number,
+                      "The specified height ${sheight} is lower than the current height ${height}", ("sheight", project_asset_opts->start_financing_block_num)("height", head_block_number));
+
+          uint32_t diff = project_asset_opts->start_financing_block_num - head_block_number;
+          project_asset_opts->start_financing_time = time_point_sec(diff * get_global_properties().parameters.block_interval + fc::time_point::now().time_since_epoch().to_seconds());
       }
 
       asset_create_operation create_op;
@@ -1801,6 +1800,13 @@ public:
         if( auto real_id = detail::maybe_id<account_id_type>(account) )
            return _remote_db->list_account_investment(*real_id);
         return _remote_db->list_account_investment(get_account(account).id);
+    }
+
+    investment_dynamic_data_object list_investment_issued_asset(string asset)
+    {
+        if( auto real_id = detail::maybe_id<asset_id_type>(asset) )
+           return _remote_db->list_investment_issued_asset(*real_id);
+        return _remote_db->list_investment_issued_asset(get_asset(asset).id);
     }
 
     signed_transaction refund_investment(string owner_account,
@@ -2442,15 +2448,13 @@ public:
       return sign_transaction(tx, broadcast);
    }
 
-   signed_transaction issue_asset_and_get_financing(string symbol, bool broadcast = false)
+   signed_transaction issue_asset_to_investors(string symbol, bool broadcast = false)
    {
       auto asset_obj = get_asset(symbol);
 
       auto asset_investments = list_asset_investment(symbol);
 
-      issue_asset_and_get_financing_operation issue_op;
-      std::transform(asset_investments.begin(), asset_investments.end(), std::inserter(issue_op.investment_ids, issue_op.investment_ids.begin()),
-                     [](const asset_investment_object& a) { return a.id; });
+      issue_asset_to_investors_operation issue_op;
     
       issue_op.issue = asset_obj.issuer;
       issue_op.investment_asset_id = asset_obj.id;
@@ -3737,9 +3741,9 @@ signed_transaction wallet_api::issue_asset(string to_account, string amount, str
    return my->issue_asset(to_account, amount, symbol, memo, broadcast);
 }
 
-signed_transaction wallet_api::issue_asset_and_get_financing(string symbol, bool broadcast)
+signed_transaction wallet_api::issue_asset_to_investors(string symbol, bool broadcast)
 {
-   return my->issue_asset_and_get_financing(symbol, broadcast);
+   return my->issue_asset_to_investors(symbol, broadcast);
 }
 
 signed_transaction wallet_api::transfer(string from, string to, string amount,
@@ -3907,6 +3911,12 @@ vector<asset_investment_object> wallet_api::list_account_investment(string accou
 {
     return my->list_account_investment(account);
 }
+
+investment_dynamic_data_object wallet_api::list_investment_issued_asset(string account)
+{
+    return my->list_investment_issued_asset(account);
+}
+
 signed_transaction wallet_api::refund_investment(string owner_account,string asset,bool broadcast)
 {
     return my->refund_investment(owner_account,asset,broadcast);

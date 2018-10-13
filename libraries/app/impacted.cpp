@@ -275,7 +275,7 @@ struct get_impacted_account_visitor
    {
        _impacted.insert( op.fee_payer() );
    }
-   void operator()( const issue_asset_and_get_financing_operation& op )
+   void operator()( const issue_asset_to_investors_operation& op )
    {
        _impacted.insert( op.fee_payer() );
    }

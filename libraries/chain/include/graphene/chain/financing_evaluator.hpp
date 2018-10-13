@@ -28,9 +28,9 @@
 namespace graphene { namespace chain {
 
 class asset_investment_evaluator;
-class issue_asset_and_get_financing_evaluator;
+class issue_asset_to_investors_evaluator;
 struct asset_investment_operation;
-struct issue_asset_and_get_financing_operation;
+struct issue_asset_to_investors_operation;;
 class refund_investment_evaluator;
 struct refund_investment_operation;
 
@@ -43,13 +43,19 @@ class asset_investment_evaluator : public evaluator<asset_investment_evaluator>
         void_result do_apply( const asset_investment_operation& op );
 };
 
-class issue_asset_and_get_financing_evaluator : public evaluator<issue_asset_and_get_financing_evaluator>
+class issue_asset_to_investors_evaluator : public evaluator<issue_asset_to_investors_evaluator>
 {
     public:
-        typedef issue_asset_and_get_financing_operation operation_type;
+        typedef issue_asset_to_investors_operation operation_type;
 
-        void_result do_evaluate( const issue_asset_and_get_financing_operation& op );
-        void_result do_apply( const issue_asset_and_get_financing_operation& op );
+        share_type total_issue;
+        const asset_dynamic_data_object* asset_dyn_data = nullptr;
+        std::vector<const asset_investment_object*>           investment_objects;
+        std::vector<share_type>           issue_amounts;
+        const asset_object* khd_asset_object = nullptr;
+
+        void_result do_evaluate( const issue_asset_to_investors_operation& op );
+        void_result do_apply( const issue_asset_to_investors_operation& op );
 };
 
 class refund_investment_evaluator : public evaluator<refund_investment_evaluator>

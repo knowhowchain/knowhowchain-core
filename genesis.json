@@ -305,64 +305,64 @@
         "accumulated_fees": 0,
         "collateral_records": [
             {
-                "collateral": 1,
-                "debt": 500000000000000,
+                "collateral": 200000000000000000,
+                "debt": 5000000000000,
                 "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama"
             }
         ],
         "description": "1 United States dollar",
         "is_bitasset": true,
         "issuer_name": "committee-account",
-        "max_supply": "1000000000000000",
+        "max_supply": "100000000000000",
         "precision": 4,
         "symbol": "KHD"
     },{
         "accumulated_fees": 0,
         "collateral_records": [
             {
-                "collateral": 1,
-                "debt": 500000000000000,
+                "collateral": 200000000000000000,
+                "debt": 5000000000000,
                 "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama"
             }
         ],
         "description": "1 Chinese yuan",
         "is_bitasset": true,
         "issuer_name": "committee-account",
-        "max_supply": "1000000000000000",
+        "max_supply": "100000000000000",
         "precision": 4,
         "symbol": "KHY"
     },{
         "accumulated_fees": 0,
         "collateral_records": [
             {
-                "collateral": 1,
-                "debt": 500000000000000,
+                "collateral": 200000000000000000,
+                "debt": 5000000000000,
                 "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama"
             }
         ],
         "description": "1 euro",
         "is_bitasset": true,
         "issuer_name": "committee-account",
-        "max_supply": "1000000000000000",
+        "max_supply": "100000000000000",
         "precision": 4,
         "symbol": "KHE"
     }],
   "initial_balances": [{
       "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama",
       "asset_symbol": "KHC",
-      "amount": "1000000000000000000"
+      "amount": "400000000000000000"
     },{
       "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama",
       "asset_symbol": "KHD",
-      "amount": "500000000000000"
+      "amount": "5000000000000"
     },{
       "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama",
       "asset_symbol": "KHY",
-      "amount": "500000000000000"
+      "amount": "5000000000000"
     },{
       "owner": "KHCFAbAx7yuxt725qSZvfwWqkdCwp9ZnUama",
       "asset_symbol": "KHE",
-      "amount": "500000000000000"
+      "amount": "5000000000000"
     }
   ],
   "initial_vesting_balances": [],

@@ -263,7 +263,7 @@ struct get_impacted_account_visitor
    {
        _impacted.insert( op.fee_payer() );
    }
-   void operator()( const issue_asset_and_get_financing_operation& op )
+   void operator()( const issue_asset_to_investors_operation& op )
    {
        _impacted.insert( op.fee_payer() );
    }
@@ -375,6 +375,8 @@ static void get_relevant_accounts( const object* obj, flat_set<account_id_type>&
              case impl_asset_dynamic_data_type:
               break;
              case impl_asset_bitasset_data_type:
+              break;
+             case impl_investment_dynamic_data_type:
               break;
              case impl_account_balance_object_type:{
               const auto& aobj = dynamic_cast<const account_balance_object*>(obj);

@@ -64,8 +64,8 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
        auto itr = assets_by_projasset_name.find(op.project_asset_opts->name);
        KHC_WASSERT(itr == assets_by_projasset_name.end(), "${prj_name} is already exists!", ("prj_name", op.project_asset_opts->name));
 
-       KHC_WASSERT(op.project_asset_opts->ref_block_num >= d.get_dynamic_global_properties().head_block_number,
-                   "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->ref_block_num)("height", d.get_dynamic_global_properties().head_block_number));
+       KHC_WASSERT(op.project_asset_opts->start_financing_block_num >= d.get_dynamic_global_properties().head_block_number,
+                   "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->start_financing_block_num)("height", d.get_dynamic_global_properties().head_block_number));
    }
    auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
    auto asset_symbol_itr = asset_indx.find( op.symbol );

@@ -1114,13 +1114,13 @@ class wallet_api
                                      string memo,
                                      bool broadcast = false);
     
-      /** Issue new shares of an asset and receive the first phase of financing
+      /** Issue new shares of an porject asset
        *
        * @param symbol the ticker symbol of the asset to issue
        * @param broadcast true to broadcast the transaction on the network
        * @returns the signed transaction issuing the new shares
        */
-      signed_transaction issue_asset_and_get_financing( string symbol, bool broadcast = false);
+      signed_transaction issue_asset_to_investors( string symbol, bool broadcast = false);
 
       /** Update the core options on an asset.
        * There are a number of options which all assets in the network use. These options are 
@@ -1450,6 +1450,13 @@ class wallet_api
        * @return
        */
       vector<asset_investment_object> list_asset_investment(string asset);
+      
+      /**
+       * @brief list_investment_issued_asset
+       * @param asset is the name or id of the asset which investment by account
+       * @return
+       */
+      investment_dynamic_data_object list_investment_issued_asset(string asset);
 
       /**
        * @brief list_account_investment
@@ -1949,6 +1956,7 @@ FC_API( graphene::wallet::wallet_api,
         (investment_asset)
         (list_asset_investment)
         (list_account_investment)
-        (issue_asset_and_get_financing)
         (refund_investment)
+        (issue_asset_to_investors)
+        (list_investment_issued_asset)
       )

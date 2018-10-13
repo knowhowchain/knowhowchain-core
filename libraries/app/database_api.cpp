@@ -162,6 +162,8 @@ class database_api_impl : public std::enable_shared_from_this<database_api_impl>
       string get_account_power(account_id_type account,uint8_t power_from);
 
       vector<asset_investment_object> list_asset_investment(asset_id_type asset_id);
+      investment_dynamic_data_object list_investment_issued_asset(asset_id_type asset_id);
+
 
       vector<asset_investment_object> list_account_investment(account_id_type account_id);
 
@@ -2172,6 +2174,11 @@ vector<asset_investment_object> database_api::list_asset_investment(asset_id_typ
     return my->list_asset_investment(asset_id);
 }
 
+investment_dynamic_data_object database_api::list_investment_issued_asset(asset_id_type asset_id)
+{
+    return my->list_investment_issued_asset(asset_id);
+}
+
 vector<asset_investment_object> database_api::list_account_investment(account_id_type account_id)
 {
     return my->list_account_investment(account_id);
@@ -2247,6 +2254,14 @@ vector<asset_investment_object> database_api_impl::list_asset_investment(asset_i
         vec.emplace_back(obj);
     });
     return vec;
+}
+
+investment_dynamic_data_object database_api_impl::list_investment_issued_asset(asset_id_type asset_id)
+{
+    const auto& idx = _db.get_index_type<investment_dynamic_data_index>().indices().get<by_asset>();
+    auto ite = idx.find(asset_id);
+    KHC_WASSERT(ite != idx.end(),"Not release assets to investors");
+    return *ite;
 }
 
 vector<asset_investment_object> database_api_impl::list_account_investment(account_id_type account_id)

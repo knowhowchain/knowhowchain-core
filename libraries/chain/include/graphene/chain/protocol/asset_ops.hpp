@@ -145,7 +145,10 @@ namespace graphene { namespace chain {
        share_type minimum_financing_amount = 0;
 
        ///The height of starting financing
-       uint32_t ref_block_num = 0;
+       uint32_t start_financing_block_num= 0;
+
+       ///The height of end financing and staring project
+       uint32_t end_financing_block_num= 0;
 
        fc::time_point_sec  start_financing_time;
        ///Up to 4 weeks
@@ -599,7 +602,8 @@ FC_REFLECT( graphene::chain::project_asset_options,
             (url)
             (transfer_ratio)
             (minimum_financing_amount)
-            (ref_block_num)
+            (start_financing_block_num)
+            (end_financing_block_num)
             (start_financing_time)
             (financing_cycle)
             (extensions)

@@ -685,6 +685,11 @@ class database_api
        */
       vector<asset_investment_object> list_asset_investment(asset_id_type asset_id);
 
+      /** Get the assets sent to the user
+       *   @param asset the name or id of the asset
+       *   @returns the list of asset investment
+       */
+      investment_dynamic_data_object list_investment_issued_asset(asset_id_type asset_id);
 
       /** Get the list of account investment
        *   @param account the name or id of the account
@@ -757,6 +762,7 @@ FC_API(graphene::app::database_api,
    (lookup_asset_symbols)
    (lookup_asset_by_project_name)
    (list_asset_investment)
+   (list_investment_issued_asset)
 
    // Markets / feeds
    (get_order_book)

@@ -31,7 +31,7 @@ void asset_investment_operation::validate()const
     FC_ASSERT( amount.amount >0 );
 }
 
-void issue_asset_and_get_financing_operation::validate()const
+void issue_asset_to_investors_operation::validate()const
 {
     FC_ASSERT( fee.amount >= 0 );
 }
