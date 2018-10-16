@@ -41,4 +41,9 @@ void refund_investment_operation::validate()const
     ;
 }
 
+void claim_asset_investment_operation::validate()const
+{
+    ;
+}
+
 }}// graphene::chain

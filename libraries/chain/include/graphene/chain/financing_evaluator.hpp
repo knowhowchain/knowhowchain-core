@@ -33,6 +33,8 @@ struct asset_investment_operation;
 struct issue_asset_to_investors_operation;;
 class refund_investment_evaluator;
 struct refund_investment_operation;
+class claim_asset_investment_evaluator;
+struct claim_asset_investment_operation;
 
 class asset_investment_evaluator : public evaluator<asset_investment_evaluator>
 {
@@ -66,4 +68,15 @@ class refund_investment_evaluator : public evaluator<refund_investment_evaluator
         void_result do_evaluate( const refund_investment_operation& op );
         void_result do_apply( const refund_investment_operation& op );
 };
+
+class claim_asset_investment_evaluator : public evaluator<claim_asset_investment_evaluator>
+{
+    public:
+        typedef claim_asset_investment_operation operation_type;
+
+        void_result do_evaluate( const claim_asset_investment_operation& op);
+        void_result do_apply( const claim_asset_investment_operation& op);
+};
+
+
 } } // graphene::chain

@@ -156,7 +156,6 @@ void_result issue_asset_to_investors_evaluator::do_apply( const issue_asset_to_i
 
    db().modify(*asset_dyn_data, [&](asset_dynamic_data_object &data) {
        data.current_supply += total_issue;
-       data.financing_current_supply = 0;
    });
 
    return void_result();
@@ -231,6 +230,22 @@ void_result refund_investment_evaluator::do_apply( const refund_investment_opera
            });
        }
    }
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_investment_operation& o )
+{ try {
+   database& d = db();
+   ;
+
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result claim_asset_investment_evaluator::do_apply( const claim_asset_investment_operation& o )
+{ try {
+   database& d = db();
+   ;
+
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 

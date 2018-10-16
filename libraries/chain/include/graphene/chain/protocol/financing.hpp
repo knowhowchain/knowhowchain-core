@@ -75,6 +75,29 @@ struct refund_investment_operation : public base_operation
   void validate()const;
 };
 
+/**
+ * @brief This operation is used to investment a asset
+ * @ingroup operations
+ *
+ * account can investment asset
+ */
+struct claim_asset_investment_operation : public base_operation
+{
+   struct fee_parameters_type { share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+
+   /// Paid by authorizing_account
+   asset fee;
+
+   /// The account who create that asset
+   account_id_type account_id;
+
+   /// The asset which be invest in
+   asset_id_type asset_id;
+
+   account_id_type fee_payer()const { return account_id; }
+   void validate()const;
+};
+
 }} // graphene::chain
 
 FC_REFLECT( graphene::chain::asset_investment_operation::fee_parameters_type, (fee) )
@@ -84,6 +107,10 @@ FC_REFLECT( graphene::chain::asset_investment_operation,
 FC_REFLECT( graphene::chain::issue_asset_to_investors_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::issue_asset_to_investors_operation,
             (fee)(issue)(investment_asset_id) )
+
+FC_REFLECT( graphene::chain::claim_asset_investment_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::claim_asset_investment_operation,
+            (fee)(account_id)(asset_id) )
 
 FC_REFLECT( graphene::chain::refund_investment_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::refund_investment_operation,
