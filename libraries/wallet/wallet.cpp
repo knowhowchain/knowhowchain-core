@@ -263,7 +263,7 @@ template<typename T, typename F>
 class by_name_selector
 {
   public:
-    by_name_selector(bool& valid, F f, T& st, const char *name): t(st), f(f), name(name), valid(valid)
+    by_name_selector(bool& valid, F& f, T& st, const char *name): t(st), f(f), name(name), valid(valid)
     {
     }
 
@@ -272,14 +272,13 @@ class by_name_selector
     {
         if(name == mem_name)
         {
-            f(&(t.*mem_ptr));
-            valid = true;
+            valid = f(t.*mem_ptr);
         }
     }
 
   private:
     T& t;
-    F f;
+    F& f;
     std::string name;
     bool& valid;
 };
@@ -322,6 +321,36 @@ class type_list<>
     }
 };
 
+template<typename L, bool assign_only_if_same_type = false>
+class assign_function
+{
+  public:
+    explicit assign_function(L& lhs) : lhs(lhs) {}
+
+    template<typename R>
+    bool operator() (R& rhs)
+    {
+        return assign(rhs);
+    }
+
+  private:
+    L& lhs;
+
+    template<typename R>
+    bool assign(R& rhs, typename std::enable_if<
+            std::is_assignable<decltype(lhs), decltype(rhs)>::value && 
+            (!assign_only_if_same_type || std::is_same<decltype(lhs), decltype(rhs)>::value), int>::type = 0)  // assignable
+    {
+        lhs = rhs;
+        return true;
+    }
+
+    bool assign(...)  //not assignable
+    {
+        return false;
+    }
+};
+
 template<typename To, typename From>
 class copy_visitor
 {
@@ -330,15 +359,11 @@ class copy_visitor
     {
     }
 
-    template<typename Mem, typename T, Mem (T::*mem_ptr)> 
+    template<typename Mem, typename T, Mem T::* mem_ptr> 
     void operator()(const char *mem_name) const
     {
-        auto assign = [&](void* rh)->void
-        {
-            auto p = static_cast<Mem*>(rh);
-            to.*mem_ptr = *p;
-        };
-        from.visit_mem(mem_name, assign);
+        const bool assign_only_when_same_type = true;
+        from.visit_mem(mem_name, assign_function<Mem, assign_only_when_same_type>(to.*mem_ptr));
     }
     
   private:
