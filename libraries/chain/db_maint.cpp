@@ -112,6 +112,41 @@ void database::update_worker_votes()
       ++itr;
    }
 }
+void database::update_asset_project_states()
+{
+    const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_projasset_name>();
+    auto itr = assets_by_symbol.upper_bound("");
+    for(; itr != assets_by_symbol.end(); itr++)
+    {
+        if(!(*itr).is_project_asset())
+        {
+            continue;
+        }
+        const asset_dynamic_data_object& asset_dynamic = (*itr).dynamic_asset_data_id(*this);
+        const auto& dpo = get_dynamic_global_properties();
+        auto& gp = get_global_properties();
+        auto diff = (*itr).proj_options.project_cycle / gp.parameters.block_interval;
+        auto end_of_financing_block_number = (*itr).proj_options.start_financing_block_num + diff;
+        uint8_t state ;
+        if(dpo.head_block_number < (*itr).proj_options.start_financing_block_num)
+        {
+            state = asset_dynamic_data_object::project_state::create;
+        }else if(dpo.head_block_number >= (*itr).proj_options.start_financing_block_num
+                 && dpo.head_block_number < end_of_financing_block_number){
+            state = asset_dynamic_data_object::project_state::financing;
+        }else{
+            if(asset_dynamic.financing_confidential_supply >= (*itr).proj_options.min_issue_market_value){
+                state = asset_dynamic_data_object::project_state::financing_success;
+            }else{
+                state = asset_dynamic_data_object::project_state::financing_failue;
+            }
+        }
+
+        modify( asset_dynamic, [&]( asset_dynamic_data_object& obj ){
+           obj.state = state;
+        });
+    }
+}
 
 void database::pay_workers( share_type& budget )
 {
@@ -1096,6 +1131,7 @@ void database::perform_chain_maintenance(const signed_block& next_block, const g
    update_active_witnesses();
    update_active_committee_members();
    update_worker_votes();
+   update_asset_project_states();
 
    modify(gpo, [this](global_property_object& p) {
       // Remove scaling of account registration fee

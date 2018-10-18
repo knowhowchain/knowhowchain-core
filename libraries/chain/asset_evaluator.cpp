@@ -53,11 +53,18 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    for( auto id : op.common_options.blacklist_authorities )
       d.get_object(id);
 
+   auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
+   auto asset_symbol_itr = asset_indx.find( op.symbol );
+   FC_ASSERT( asset_symbol_itr == asset_indx.end() );
+
    FC_ASSERT(!(op.bitasset_opts.valid() && op.project_asset_opts.valid()), "bitasset and projasset cannot be set at the same time.");
    if (op.project_asset_opts.valid())
    {
-       auto req_power = khc::power_required_for_finacing(op.project_asset_opts->minimum_financing_amount);
-       KHC_WASSERT(req_power <= *op.power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", req_power.value)("power", *op.power));
+       auto khd_object_itr = asset_indx.find(KHD_ASSET_SYMBOL);
+       FC_ASSERT( khd_object_itr == asset_indx.end());
+       const auto finacing_amount = khc::khc_market_value(op.common_options.max_supply,op.common_options.core_exchange_rate,(*khd_object_itr).options.core_exchange_rate);
+       const auto required_power = khc::power_required_for_finacing(finacing_amount);
+       KHC_WASSERT(required_power <= *op.power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power.value)("power", *op.power));
 
        KHC_WASSERT(op.project_asset_opts->name.size() != 0, "Asset must have a project name.");
        const auto &assets_by_projasset_name = d.get_index_type<asset_index>().indices().get<by_projasset_name>();
@@ -67,9 +74,8 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
        KHC_WASSERT(op.project_asset_opts->start_financing_block_num >= d.get_dynamic_global_properties().head_block_number,
                    "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->start_financing_block_num)("height", d.get_dynamic_global_properties().head_block_number));
    }
-   auto& asset_indx = d.get_index_type<asset_index>().indices().get<by_symbol>();
-   auto asset_symbol_itr = asset_indx.find( op.symbol );
-   FC_ASSERT( asset_symbol_itr == asset_indx.end() );
+
+
 
    if( d.head_block_time() > HARDFORK_385_TIME )
    {

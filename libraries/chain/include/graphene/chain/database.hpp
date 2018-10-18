@@ -467,6 +467,7 @@ namespace graphene { namespace chain {
          void update_active_witnesses();
          void update_active_committee_members();
          void update_worker_votes();
+         void update_asset_project_states();
          void process_bids( const asset_bitasset_data_object& bad );
          void process_bitassets();
 

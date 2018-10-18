@@ -55,8 +55,15 @@ namespace graphene { namespace chain {
     *  a blockchain operation.
     */
    class asset_dynamic_data_object : public abstract_object<asset_dynamic_data_object>
-   {
+   {     
       public:
+         enum project_state
+         {
+            create = 0,
+            financing = 1,
+            financing_success = 2,
+            financing_failue = 3
+         };
          static const uint8_t space_id = implementation_ids;
          static const uint8_t type_id  = impl_asset_dynamic_data_type;
 
@@ -68,6 +75,7 @@ namespace graphene { namespace chain {
 
          share_type financing_current_supply;
          share_type financing_confidential_supply;
+         uint8_t state = project_state::create;
    };
 
    /**
@@ -179,6 +187,10 @@ namespace graphene { namespace chain {
          optional<account_id_type> buyback_account;
 
          asset_id_type get_id()const { return id; }
+
+         bool is_project_asset() const {
+             return proj_options.name != "";
+         }
 
          void validate()const
          {
@@ -343,8 +355,20 @@ namespace graphene { namespace chain {
    typedef generic_index<investment_dynamic_data_object,investment_dynamic_data_object_multi_index_type> investment_dynamic_data_index;
 } } // graphene::chain
 
+FC_REFLECT_ENUM( graphene::chain::asset_dynamic_data_object::project_state,
+                (create)
+                (financing)
+                (financing_success)
+                (financing_failue)
+              )
 FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::object),
-                    (current_supply)(confidential_supply)(accumulated_fees)(fee_pool)(financing_current_supply)(financing_confidential_supply) )
+                    (current_supply)
+                    (confidential_supply)
+                    (accumulated_fees)
+                    (fee_pool)
+                    (financing_current_supply)
+                    (financing_confidential_supply)
+                    (state))
 
 FC_REFLECT_DERIVED( graphene::chain::asset_investment_object, (graphene::db::object),
                     (investment_account_id)

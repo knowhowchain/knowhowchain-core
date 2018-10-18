@@ -75,11 +75,11 @@ share_type khc_amount_from_string(string amount_string,uint8_t precision)
    } FC_CAPTURE_AND_RETHROW( (amount_string) )
 }
 
-share_type power_required_for_finacing(share_type minimum_financing_amount)
+share_type power_required_for_finacing(share_type market_value)
 {
-    share_type convert_ratio = KHC_POWER_CONVERT_KHD_RATIO * graphene::chain::asset::scaled_precision(KHD_PRECISION_DIGITS);
-    share_type required_power = minimum_financing_amount / convert_ratio;
-    if (minimum_financing_amount % convert_ratio != 0)
+    share_type convert_ratio = KHC_POWER_CONVERT_KHD_RATIO * graphene::chain::asset::scaled_precision(KHD_PRECISION_DIGITS) ;
+    share_type required_power = market_value / convert_ratio;
+    if (market_value % convert_ratio != 0)
         ++required_power;
     required_power *= graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS);
     return required_power;
@@ -98,6 +98,14 @@ share_type power_required_for_finacing(share_type minimum_financing_amount)
         return std::make_pair(KHC_POWER_GRADE_5_MIN_POWER, KHC_POWER_GRADE_5_MAX_POWER);
     return std::make_pair(KHC_POWER_GRADE_6_MIN_POWER, KHC_POWER_GRADE_6_MAX_POWER);
     */
+}
+
+share_type khc_market_value(share_type max_supply, price core_exchange_rate,price khd_price)
+{
+    asset max_amount(max_supply,core_exchange_rate.base.asset_id);
+    asset core_amount = max_amount * core_exchange_rate;
+    asset khd_amount = core_amount * khd_price;
+    return khd_amount.amount;
 }
 
 }}

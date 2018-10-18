@@ -99,10 +99,11 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    const asset_object& investment_asset_object = o.investment_asset_id(d);
    KHC_WASSERT( !investment_asset_object.is_market_issued(), "Cannot manually issue a market-issued asset." );
    KHC_WASSERT( investment_asset_object.proj_options.name.size() != 0, "No project information." );
-   KHC_WASSERT( investment_asset_object.proj_options.transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "No project information." );
+   KHC_WASSERT( investment_asset_object.proj_options.max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "No project information." );
+   KHC_WASSERT( investment_asset_object.proj_options.min_transfer_ratio <= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO, "No project information." );
    ///LIUTODO KHC_WASSERT(investment_asset_object.proj_options.end_financing_block_num !=0, "Financing has not ended or has failed." );
 
-   total_issue = (fc::uint128_t(investment_asset_object.options.max_supply.value) * investment_asset_object.proj_options.transfer_ratio / KHC_100_PERCENT).to_uint64();
+   total_issue = (fc::uint128_t(investment_asset_object.options.max_supply.value) * investment_asset_object.proj_options.max_transfer_ratio / KHC_100_PERCENT).to_uint64();
 
    asset_dyn_data = &investment_asset_object.dynamic_asset_data_id(d);
    const auto &idx = d.get_index_type<asset_investment_index>().indices().get<by_asset>();
@@ -168,16 +169,18 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
 
    const asset_object& asset_o = d.get(o.investment_asset_id);
    const asset_dynamic_data_object& asset_dynamic = asset_o.dynamic_asset_data_id(d);
-   const auto& dpo = d.get_dynamic_global_properties();
+   KHC_WASSERT(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_failue,"asset project is not in failed state.");
 
+/*
+   const auto& dpo = d.get_dynamic_global_properties();
    auto diff = asset_o.proj_options.project_cycle / gp.parameters.block_interval;
    auto exp_block_number = asset_o.proj_options.start_financing_block_num + diff;
    KHC_WASSERT(exp_block_number < dpo.head_block_number,"exp_block(${exp_block}) now_block(${now_block}) project has not expired!",
                ("exp_blokc",exp_block_number)("now_block",dpo.head_block_number));
-   KHC_WASSERT(asset_dynamic.financing_confidential_supply < asset_o.proj_options.minimum_financing_amount,
-               "financing_confidential_supply(${confidential} large than minimum_financing_amount(${minimum}),project has success already.",
-               ("confidential",asset_dynamic.financing_confidential_supply)("minimum",asset_o.proj_options.minimum_financing_amount));
-
+   KHC_WASSERT(asset_dynamic.financing_confidential_supply < asset_o.proj_options.min_issue_market_value,
+               "financing_confidential_supply(${confidential} large than min_issue_market_value(${minimum}),project has success already.",
+               ("confidential",asset_dynamic.financing_confidential_supply)("minimum",asset_o.proj_options.min_issue_market_value));
+*/
    const auto& idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
    auto range = idx.equal_range(o.account_id);
    vector<asset_investment_object> vec;

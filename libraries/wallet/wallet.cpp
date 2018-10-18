@@ -1357,11 +1357,23 @@ public:
           KHC_WASSERT(project_asset_opts->name.size() != 0, "Asset must have a project name.");
 
           KHC_WASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "${prj_name} is already exists!", ("prj_name", project_asset_opts->name));
+          KHC_WASSERT(project_asset_opts->min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO,"min_transfer_ratio${min_ratio} must be large than ${khc_min_ratio}",
+                      ("min_ratio",project_asset_opts->min_transfer_ratio)("khc_min_ratio",KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO));
+          KHC_WASSERT(project_asset_opts->max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO,"max_transfer_ratio${max_ratio} must be less than ${khc_max_ratio}",
+                      ("max_ratio",project_asset_opts->max_transfer_ratio)("khc_max_ratio",KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO));
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
-          const auto required_power = khc::power_required_for_finacing(project_asset_opts->minimum_financing_amount);
+
+          const auto khd_object = find_asset(KHD_ASSET_SYMBOL);
+          const auto market_value = khc::khc_market_value(common.max_supply,common.core_exchange_rate,khd_object->options.core_exchange_rate);
+          KHC_WASSERT(market_value.value > 0,"finacing amount must be large than 0.");
+          project_asset_opts->min_issue_market_value = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
+          project_asset_opts->max_issue_market_value = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();
+
+          const auto required_power = khc::power_required_for_finacing(market_value);
           KHC_WASSERT(required_power <= *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
-          idump((power)(required_power)(project_asset_opts->minimum_financing_amount));
+          idump((power)(required_power)(project_asset_opts->min_transfer_ratio)(project_asset_opts->max_transfer_ratio));
           power = required_power;
+
 
           KHC_WASSERT(project_asset_opts->project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE &&
                           project_asset_opts->project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE,

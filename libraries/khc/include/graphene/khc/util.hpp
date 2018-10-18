@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <graphene/chain/protocol/types.hpp>
 #include <graphene/db/object.hpp>
+#include <graphene/chain/protocol/base.hpp>
 
 namespace graphene { namespace khc {
 using namespace graphene::chain;
@@ -24,7 +25,8 @@ enum power_from_source
 std::string khc_amount_to_string(share_type amount,uint8_t precision);
 share_type khc_amount_from_string(std::string amount_string,uint8_t precision);
 
-share_type power_required_for_finacing(share_type minimum_financing_amount);
+share_type khc_market_value(share_type max_supply,price core_exchange_rate,price khd_price);
+share_type power_required_for_finacing(share_type market_value);
 
 
 }
