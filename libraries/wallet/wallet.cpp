@@ -272,7 +272,7 @@ class by_name_selector
     {
         if(name == mem_name)
         {
-            valid = f(t.*mem_ptr);
+            valid = f(&(t.*mem_ptr));
         }
     }
 
@@ -328,7 +328,7 @@ class assign_function
     explicit assign_function(L& lhs) : lhs(lhs) {}
 
     template<typename R>
-    bool operator() (R& rhs)
+    bool operator() (R* rhs)
     {
         return assign(rhs);
     }
@@ -337,11 +337,11 @@ class assign_function
     L& lhs;
 
     template<typename R>
-    bool assign(R& rhs, typename std::enable_if<
-            std::is_assignable<decltype(lhs), decltype(rhs)>::value && 
-            (!assign_only_if_same_type || std::is_same<decltype(lhs), decltype(rhs)>::value), int>::type = 0)  // assignable
+    bool assign(R* rhs, typename std::enable_if<
+            std::is_assignable<decltype(lhs), decltype(*rhs)>::value && 
+            (!assign_only_if_same_type || std::is_same<decltype(lhs), decltype(*rhs)>::value), int>::type = 0)  // assignable
     {
-        lhs = rhs;
+        lhs = *rhs;
         return true;
     }
 
@@ -3599,13 +3599,13 @@ khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
    khc_data.financing_current_supply = asset_dny_data.financing_current_supply;
    khc_data.financing_confidential_supply = asset_dny_data.financing_confidential_supply;
    khc_data.state = asset_dny_data.state;
-
-/**   detail::type_list<decltype(asset), decltype(asset.proj_options), decltype(asset_dny_data)>
+/*
+   detail::type_list<decltype(asset), decltype(asset.proj_options), decltype(asset_dny_data)>
        list(asset, asset.proj_options, asset_dny_data);
    fc::reflector<khcasset_data>::visit(
        detail::copy_visitor<khcasset_data, decltype(list)>(khc_data, list));
    khc_data.end_financing_time = asset.proj_options.start_financing_time + asset.proj_options.financing_cycle;
-**/
+*/
    return khc_data;
 }
 
