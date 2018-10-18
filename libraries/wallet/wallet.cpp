@@ -3579,11 +3579,33 @@ khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
    auto asset = get_asset(asset_name_or_id);
    auto asset_dny_data = my->get_object<asset_dynamic_data_object>(asset.dynamic_asset_data_id);
    khcasset_data khc_data;
-   detail::type_list<decltype(asset), decltype(asset.proj_options), decltype(asset_dny_data)>
+   khc_data.symbol = asset.symbol;
+   khc_data.issuer = asset.issuer;
+
+   khc_data.name = asset.proj_options.name;
+   khc_data.type = asset.proj_options.type;
+   khc_data.project_cycle = asset.proj_options.project_cycle;
+   khc_data.url = asset.proj_options.url;
+   khc_data.min_transfer_ratio = asset.proj_options.min_transfer_ratio;
+   khc_data.max_transfer_ratio = asset.proj_options.max_transfer_ratio;
+   khc_data.min_issue_market_value = asset.proj_options.min_issue_market_value;
+   khc_data.max_issue_market_value = asset.proj_options.max_issue_market_value;
+   khc_data.start_financing_time = asset.proj_options.start_financing_time;
+   khc_data.end_financing_time = asset.proj_options.start_financing_time + asset.proj_options.financing_cycle;
+   khc_data.start_financing_block_num = asset.proj_options.start_financing_block_num;
+   khc_data.end_financing_block_num = asset.proj_options.end_financing_block_num;
+   khc_data.financing_cycle = asset.proj_options.financing_cycle;
+
+   khc_data.financing_current_supply = asset_dny_data.financing_current_supply;
+   khc_data.financing_confidential_supply = asset_dny_data.financing_confidential_supply;
+   khc_data.state = asset_dny_data.state;
+
+/**   detail::type_list<decltype(asset), decltype(asset.proj_options), decltype(asset_dny_data)>
        list(asset, asset.proj_options, asset_dny_data);
    fc::reflector<khcasset_data>::visit(
        detail::copy_visitor<khcasset_data, decltype(list)>(khc_data, list));
    khc_data.end_financing_time = asset.proj_options.start_financing_time + asset.proj_options.financing_cycle;
+**/
    return khc_data;
 }
 

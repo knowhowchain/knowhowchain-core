@@ -309,17 +309,28 @@ struct khcasset_data {
     uint64_t project_cycle = 0;
     ///Community related address
     std::string url;
-    ///0~49
-    uint16_t transfer_ratio = 0;
-    /// Achieving a minimum financing amount is considered a successful financing
-    share_type minimum_financing_amount = 0;
+    ///10~75
+    uint16_t min_transfer_ratio = 0;
+    uint16_t max_transfer_ratio = 0;
+    ///financing amount
+    share_type min_issue_market_value=0;
+    share_type max_issue_market_value=0;
+
     fc::time_point_sec  start_financing_time;
     fc::time_point_sec  end_financing_time;
+
+    ///The height of starting financing
+    uint32_t start_financing_block_num= 0;
+
+    ///The height of end financing and staring project
+    uint32_t end_financing_block_num= 0;
+
     ///Up to 4 weeks
     uint64_t  financing_cycle=0;
     
     share_type financing_current_supply;
     share_type financing_confidential_supply;
+    uint8_t state;
 };
 
 /**
@@ -1827,13 +1838,16 @@ FC_REFLECT( graphene::wallet::khcasset_data,
             (type)
             (project_cycle)
             (url)
-            (transfer_ratio)
-            (minimum_financing_amount)
+            (min_transfer_ratio)
+            (max_transfer_ratio)
+            (min_issue_market_value)
+            (max_issue_market_value)
             (start_financing_time)
             (end_financing_time)
             (financing_cycle)
             (financing_current_supply)
             (financing_confidential_supply)
+            (state)
 )    
 
 FC_API( graphene::wallet::wallet_api,
