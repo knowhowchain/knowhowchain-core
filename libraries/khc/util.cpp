@@ -1,6 +1,7 @@
 #include <graphene/khc/util.hpp>
 #include <graphene/khc/config.hpp>
 #include <graphene/chain/protocol/asset.hpp>
+#include <fc/uint128.hpp>
 
 uint64_t g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
 uint64_t g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_PROJECT_CYCLE_UNIT;
@@ -78,11 +79,13 @@ share_type khc_amount_from_string(string amount_string,uint8_t precision)
 share_type power_required_for_finacing(share_type market_value)
 {
     share_type convert_ratio = KHC_POWER_CONVERT_KHD_RATIO * graphene::chain::asset::scaled_precision(KHD_PRECISION_DIGITS) ;
-    share_type required_power = market_value / convert_ratio;
+    fc::uint128_t required_power = market_value.value / convert_ratio.value;
     if (market_value % convert_ratio != 0)
         ++required_power;
-    required_power *= graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS);
-    return required_power;
+    required_power *= graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS).value;
+    KHC_EASSERT(required_power<GRAPHENE_MAX_SHARE_SUPPLY,"required power(${required_power}) must less than ${max_supply}",
+                ("required_power",required_power)("max_supply",GRAPHENE_MAX_SHARE_SUPPLY));
+    return required_power.to_uint64();
     /*
     if (minimum_financing_amount <= KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA)
         return std::make_pair(KHC_POWER_GRADE_0_MIN_POWER, KHC_POWER_GRADE_0_MAX_POWER);
