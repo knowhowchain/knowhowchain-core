@@ -96,6 +96,15 @@ uint32_t database::last_non_undoable_block_num() const
 {
    return head_block_num() - _undo_db.size();
 }
+asset_id_type database::get_asset_id(std::string symbol) const{
+    const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_symbol>();
+    auto itr = assets_by_symbol.find(symbol);
+    FC_ASSERT(itr != assets_by_symbol.end(),
+             "Unable to find asset '${sym}'.",
+             ("sym", symbol));
+    const auto get_asset_id = itr->get_id();
+    return get_asset_id;
+}
 
 
 } }

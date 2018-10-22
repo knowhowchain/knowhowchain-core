@@ -38,12 +38,12 @@ void issue_asset_to_investors_operation::validate()const
 
 void refund_investment_operation::validate()const
 {
-    ;
+    FC_ASSERT( fee.amount >= 0 );
 }
 
 void claim_asset_investment_operation::validate()const
 {
-    ;
+    FC_ASSERT( fee.amount >= 0 );
 }
 
 }}// graphene::chain

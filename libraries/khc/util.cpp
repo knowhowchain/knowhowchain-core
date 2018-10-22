@@ -103,9 +103,9 @@ share_type power_required_for_finacing(share_type market_value)
     */
 }
 
-share_type khc_market_value(share_type max_supply, price core_exchange_rate,price khd_price)
+share_type convert_to_khd_amount(share_type max_supply, price core_exchange_rate,price khd_price)
 {
-    asset max_amount(max_supply,core_exchange_rate.base.asset_id);
+    asset max_amount(max_supply,core_exchange_rate.quote.asset_id);
     asset core_amount = max_amount * core_exchange_rate;
     asset khd_amount = core_amount * khd_price;
     return khd_amount.amount;

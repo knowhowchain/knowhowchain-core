@@ -165,7 +165,7 @@ void_result issue_asset_to_investors_evaluator::do_apply( const issue_asset_to_i
 void_result refund_investment_evaluator::do_evaluate( const refund_investment_operation& o )
 { try {
    database& d = db();
-   auto& gp = d.get_global_properties();
+//   auto& gp = d.get_global_properties();
 
    const asset_object& asset_o = d.get(o.investment_asset_id);
    const asset_dynamic_data_object& asset_dynamic = asset_o.dynamic_asset_data_id(d);
@@ -239,7 +239,29 @@ void_result refund_investment_evaluator::do_apply( const refund_investment_opera
 void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_investment_operation& o )
 { try {
    database& d = db();
-   ;
+   const asset_object& asset_o = d.get(o.asset_id);
+   const account_object issue_account = d.get(o.account_id);
+   const asset_dynamic_data_object dynamic_o = d.get(asset_o.dynamic_asset_data_id);
+   KHC_WASSERT(dynamic_o.claim_times < 3,"issuer has claim all asset already.");
+   KHC_WASSERT(dynamic_o.financing_current_supply > 0,"asset(${asset}) has no investment less.",("asset",asset_o.symbol));
+   KHC_WASSERT(asset_o.issuer == o.account_id,"account(${account} is not the issuer of asset(${asset}))",
+               ("account",o.account_id)("asset",asset_o.symbol));
+
+   const auto& dpo = d.get_dynamic_global_properties();
+   const auto& po = d.get_global_properties();
+   if(dynamic_o.claim_times == 0){
+       auto first_claim_block = asset_o.proj_options.end_financing_block_num + (86400 / po.parameters.block_interval);
+       KHC_WASSERT(dpo.head_block_number >= first_claim_block,"now_block(${block}),next claim block(${nblock})",
+                   ("block",dpo.head_block_number)("nblock",first_claim_block));
+   }else if(dynamic_o.claim_times == 1){
+       auto second_claim_block = asset_o.proj_options.end_financing_block_num + (asset_o.proj_options.project_cycle/ 2 / po.parameters.block_interval);
+       KHC_WASSERT(dpo.head_block_number >= second_claim_block,"now_block(${block}),next claim block(${nblock})",
+                   ("block",dpo.head_block_number)("nblock",second_claim_block));
+   }else{
+       auto end_claim_block = asset_o.proj_options.end_financing_block_num + (asset_o.proj_options.project_cycle / po.parameters.block_interval);
+       KHC_WASSERT(dpo.head_block_number >= end_claim_block,"now_block(${block}),next claim block(${nblock})",
+                   ("block",dpo.head_block_number)("nblock",end_claim_block));
+   }
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -247,7 +269,29 @@ void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_inv
 void_result claim_asset_investment_evaluator::do_apply( const claim_asset_investment_operation& o )
 { try {
    database& d = db();
-   ;
+   const asset_object& asset_o = d.get(o.asset_id);
+   const account_object issue_account = d.get(o.account_id);
+   const asset_dynamic_data_object dynamic_o = d.get(asset_o.dynamic_asset_data_id);
+   share_type claim_amount;
+   if(dynamic_o.claim_times == 0){
+       claim_amount =  (fc::uint128_t(dynamic_o.financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
+   }else if(dynamic_o.claim_times == 1){
+       claim_amount =  (fc::uint128_t(dynamic_o.financing_confidential_supply.value) * KHC_SECOND_CLAIM_INVESTMENT_TATIO / KHC_100_PERCENT).to_uint64();
+   }else {
+       share_type claim_first =  (fc::uint128_t(dynamic_o.financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
+       share_type claim_second =  (fc::uint128_t(dynamic_o.financing_confidential_supply.value) * KHC_SECOND_CLAIM_INVESTMENT_TATIO / KHC_100_PERCENT).to_uint64();
+       claim_amount = dynamic_o.financing_confidential_supply - claim_first - claim_second;
+   }
+   KHC_WASSERT(dynamic_o.financing_current_supply - claim_amount >= 0,"issuer claim amount(${amount}),but asset(${asset}) financing_current_supply(${csupply}) is not enough",
+               ("amount",claim_amount)("asset",asset_o.symbol)("csupply",dynamic_o.financing_current_supply));
+
+   asset_id_type khd_id = d.get_asset_id(KHD_ASSET_SYMBOL);
+   asset khd_amount(claim_amount,khd_id);
+
+   d.adjust_balance(issue_account.get_id(),khd_amount);
+   d.modify( dynamic_o, [&]( asset_dynamic_data_object& s ){
+        s.financing_current_supply -= claim_amount;
+   });
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }

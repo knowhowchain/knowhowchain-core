@@ -24,6 +24,11 @@ extern uint64_t g_khc_project_asset_project_cycle_unit;
 
 #define KHC_POWER_CONVERT_KHD_RATIO 1000
 #define KHD_PRECISION_DIGITS 4
+
+#define KHC_FIRST_CLAIM_INVESTMENT_RATIO 30
+#define KHC_SECOND_CLAIM_INVESTMENT_TATIO 30
+#define KHC_THIRD_CLAIM_INVESTMENT_TATIO 40
+
 /*
 #define KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA 1000
 #define KHC_POWER_GRADE_0_MIN_POWER 51 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)

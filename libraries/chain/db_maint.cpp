@@ -123,23 +123,32 @@ void database::update_asset_project_states()
             continue;
         }
         const asset_dynamic_data_object& asset_dynamic = (*itr).dynamic_asset_data_id(*this);
+        if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_end
+                || asset_dynamic.state == asset_dynamic_data_object::project_state::financing_failue){
+            continue;
+        }
         const auto& dpo = get_dynamic_global_properties();
         auto& gp = get_global_properties();
-        auto diff = (*itr).proj_options.project_cycle / gp.parameters.block_interval;
-        auto end_of_financing_block_number = (*itr).proj_options.start_financing_block_num + diff;
+        auto financing_diff = (*itr).proj_options.financing_cycle / gp.parameters.block_interval;
+        auto project_diff = (*itr).proj_options.project_cycle / gp.parameters.block_interval;
+        auto end_of_financing_block_number = (*itr).proj_options.start_financing_block_num + financing_diff;
+        auto end_of_project_block_number = end_of_financing_block_number + project_diff;
         uint8_t state ;
         if(dpo.head_block_number < (*itr).proj_options.start_financing_block_num)
         {
-            state = asset_dynamic_data_object::project_state::create;
+            state = asset_dynamic_data_object::project_state::about_to_start;
         }else if(dpo.head_block_number >= (*itr).proj_options.start_financing_block_num
                  && dpo.head_block_number < end_of_financing_block_number){
+
             state = asset_dynamic_data_object::project_state::financing;
+        }else if(asset_dynamic.financing_confidential_supply < (*itr).proj_options.min_issue_market_value){
+
+            state = asset_dynamic_data_object::project_state::financing_failue;
+        }else if(dpo.head_block_number <= end_of_project_block_number){
+
+            state = asset_dynamic_data_object::project_state::financing_lock;
         }else{
-            if(asset_dynamic.financing_confidential_supply >= (*itr).proj_options.min_issue_market_value){
-                state = asset_dynamic_data_object::project_state::financing_success;
-            }else{
-                state = asset_dynamic_data_object::project_state::financing_failue;
-            }
+            state = asset_dynamic_data_object::project_state::project_end;
         }
 
         modify( asset_dynamic, [&]( asset_dynamic_data_object& obj ){

@@ -1364,11 +1364,10 @@ public:
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
 
           const auto khd_object = find_asset(KHD_ASSET_SYMBOL);
-          const auto market_value = khc::khc_market_value(common.max_supply,common.core_exchange_rate,khd_object->options.core_exchange_rate);
+          share_type market_value = khc::convert_to_khd_amount(common.max_supply,common.core_exchange_rate,khd_object->options.core_exchange_rate);
           KHC_WASSERT(market_value.value > 0,"finacing amount must be large than 0.");
           project_asset_opts->min_issue_market_value = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
           project_asset_opts->max_issue_market_value = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();
-
           const auto required_power = khc::power_required_for_finacing(market_value);
           KHC_WASSERT(required_power <= *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
           idump((power)(required_power)(project_asset_opts->min_transfer_ratio)(project_asset_opts->max_transfer_ratio));

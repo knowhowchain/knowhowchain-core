@@ -59,10 +59,11 @@ namespace graphene { namespace chain {
       public:
          enum project_state
          {
-            create = 0,
+            about_to_start = 0,
             financing = 1,
-            financing_success = 2,
-            financing_failue = 3
+            financing_failue = 2,
+            financing_lock = 3,
+            project_end = 4
          };
          static const uint8_t space_id = implementation_ids;
          static const uint8_t type_id  = impl_asset_dynamic_data_type;
@@ -75,7 +76,8 @@ namespace graphene { namespace chain {
 
          share_type financing_current_supply;
          share_type financing_confidential_supply;
-         uint8_t state = project_state::create;
+         uint8_t state = project_state::about_to_start;
+         uint8_t claim_times = 0;  //the times of issuer claim money
    };
 
    /**
@@ -356,10 +358,11 @@ namespace graphene { namespace chain {
 } } // graphene::chain
 
 FC_REFLECT_ENUM( graphene::chain::asset_dynamic_data_object::project_state,
-                (create)
+                (about_to_start)
                 (financing)
-                (financing_success)
                 (financing_failue)
+                (financing_lock)
+                (project_end)
               )
 FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::object),
                     (current_supply)
