@@ -153,6 +153,9 @@ namespace graphene { namespace chain {
        uint32_t end_financing_block_num= 0;
 
        fc::time_point_sec  start_financing_time;
+       fc::time_point_sec  end_financing_time;
+
+       price khd_exchange_rate;
        ///Up to 4 weeks
        uint64_t  financing_cycle=0;
 
@@ -609,6 +612,8 @@ FC_REFLECT( graphene::chain::project_asset_options,
             (start_financing_block_num)
             (end_financing_block_num)
             (start_financing_time)
+            (end_financing_time)
+            (khd_exchange_rate)
             (financing_cycle)
             (extensions)
           )

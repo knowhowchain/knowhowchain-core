@@ -78,6 +78,9 @@ namespace graphene { namespace chain {
          share_type financing_confidential_supply;
          uint8_t state = project_state::about_to_start;
          uint8_t claim_times = 0;  //the times of issuer claim money
+
+         share_type investment_current_supply;
+         share_type investment_confidential_supply; ///< total asset held in confidential balances
    };
 
    /**
@@ -95,7 +98,7 @@ namespace graphene { namespace chain {
          share_type current_supply;
          share_type confidential_supply; ///< total asset held in confidential balances
          asset_id_type investment_asset;
-         std::map<account_id_type, std::pair<bool, share_type>> investment_tokens;
+        //  std::map<account_id_type, std::pair<bool, share_type>> investment_tokens;
    };
    class asset_investment_object : public abstract_object<asset_investment_object>
    {
@@ -117,6 +120,12 @@ namespace graphene { namespace chain {
 
        ///the curr timestamp of this investment
        time_point_sec investment_timestamp;
+
+       ///Record whether the investor has received the token
+       bool has_receive_token = false;
+       
+       /// Number of tokens issued to investors
+       share_type investment_tokens = 0;
 
        ///default false,if investment fail,amount get back the khd,then set to true
        bool return_financing_flag;
@@ -192,6 +201,14 @@ namespace graphene { namespace chain {
 
          bool is_project_asset() const {
              return proj_options.name != "";
+         }
+
+         template<class DB>
+         bool is_financing_end(const DB& db) const {
+            KHC_WASSERT( is_project_asset(), 
+                       "Asset ${a} (${id}) is not a project asset.",
+                       ("a",this->symbol)("id",this->id) );
+            return db.get( dynamic_asset_data_id ).state == asset_dynamic_data_object::project_state::financing_lock;
          }
 
          void validate()const
@@ -371,7 +388,11 @@ FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::o
                     (fee_pool)
                     (financing_current_supply)
                     (financing_confidential_supply)
-                    (state))
+                    (state)
+                    (claim_times)
+                    (investment_current_supply)
+                    (investment_confidential_supply)
+                    )
 
 FC_REFLECT_DERIVED( graphene::chain::asset_investment_object, (graphene::db::object),
                     (investment_account_id)
@@ -379,6 +400,8 @@ FC_REFLECT_DERIVED( graphene::chain::asset_investment_object, (graphene::db::obj
                     (investment_khd_amount)
                     (investment_height)
                     (investment_timestamp)
+                    (has_receive_token)
+                    (investment_tokens)
                     (return_financing_flag))
 
 FC_REFLECT_DERIVED( graphene::chain::asset_bitasset_data_object, (graphene::db::object),
@@ -397,7 +420,6 @@ FC_REFLECT_DERIVED( graphene::chain::investment_dynamic_data_object, (graphene::
                     (current_supply)
                     (confidential_supply)
                     (investment_asset)
-                    (investment_tokens)
                   )
 
 FC_REFLECT_DERIVED( graphene::chain::asset_object, (graphene::db::object),

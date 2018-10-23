@@ -86,6 +86,7 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
        actual_investment_amount.amount = asset_obj.proj_options.max_financing_amount - asset_dyn_data->financing_current_supply;
        d.modify(asset_obj, [&](asset_object& a) {
           a.proj_options.end_financing_block_num = curr_block_num;
+          a.proj_options.end_financing_time = time_point_sec(fc::time_point::now());
        });
    }
 
@@ -131,14 +132,19 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
 
    const asset_object& investment_asset_object = o.investment_asset_id(d);
    KHC_WASSERT( !investment_asset_object.is_market_issued(), "Cannot manually issue a market-issued asset." );
-   KHC_WASSERT( investment_asset_object.is_project_asset(), "No project information." );
-   KHC_WASSERT( investment_asset_object.proj_options.max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "max_transfer_ratio must less than KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO." );
-   KHC_WASSERT( investment_asset_object.proj_options.min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO, "min_transfer_ratio must large than KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO." );
-   ///LIUTODO KHC_WASSERT(investment_asset_object.proj_options.end_financing_block_num !=0, "Financing has not ended or has failed." );
+   KHC_WASSERT( investment_asset_object.is_financing_end(d), "Financing is not over." );
 
-   total_issue = (fc::uint128_t(investment_asset_object.options.max_supply.value) * investment_asset_object.proj_options.max_transfer_ratio / KHC_100_PERCENT).to_uint64();
-
+   const asset_id_type khd_id = d.get_asset_id(KHD_ASSET_SYMBOL);
    asset_dyn_data = &investment_asset_object.dynamic_asset_data_id(d);
+   
+   const asset_object &investemnt_asset_object = o.investment_asset_id(d);
+
+   KHC_WASSERT(asset_dyn_data->financing_confidential_supply == asset_dyn_data->financing_current_supply,
+               "financing_confidential_supply(${financing_confidential_supply}) != financing_current_supply(${financing_current_supply})",
+               ("financing_confidential_supply", asset_dyn_data->financing_confidential_supply)("financing_current_supply", asset_dyn_data->financing_current_supply));
+
+   total_issue = (asset(asset_dyn_data->financing_confidential_supply, khd_id) * investemnt_asset_object.proj_options.khd_exchange_rate * investemnt_asset_object.options.core_exchange_rate).amount;
+
    const auto &idx = d.get_index_type<asset_investment_index>().indices().get<by_asset>();
    auto range = idx.equal_range(o.investment_asset_id);
    share_type total_investment = 0;
@@ -162,13 +168,6 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    KHC_WASSERT((asset_dyn_data->current_supply + total_issue) <= investment_asset_object.options.max_supply,
                "Exceeding the maximum supply current_supply($current_supply{}) + total_issue(${total_issue}) != max_supply(${max_supply})",
                ("current_supply", asset_dyn_data->current_supply)("total_issue", total_issue)("max_supply", investment_asset_object.options.max_supply));
-   KHC_WASSERT(asset_dyn_data->financing_confidential_supply == asset_dyn_data->financing_current_supply,
-               "financing_confidential_supply(${financing_confidential_supply}) != financing_current_supply(${financing_current_supply})",
-               ("financing_confidential_supply", asset_dyn_data->financing_confidential_supply)("financing_current_supply", asset_dyn_data->financing_current_supply));
-
-   const auto& assets_by_symbol = d.get_index_type<asset_index>().indices().get<by_symbol>();
-   auto itr = assets_by_symbol.find(KHD_ASSET_SYMBOL);
-   KHC_WASSERT(itr != assets_by_symbol.end(), "No " KHD_ASSET_SYMBOL ".");
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -177,17 +176,26 @@ void_result issue_asset_to_investors_evaluator::do_apply( const issue_asset_to_i
 { try {
    database& d = db();
 
-   d.create<investment_dynamic_data_object>([&](investment_dynamic_data_object &io) {
-       io.current_supply = total_issue;
-       io.confidential_supply = total_issue;
-       io.investment_asset =  o.investment_asset_id;
-       for(decltype(investment_objects.size()) i = 0; i < investment_objects.size(); ++i) {
-           io.investment_tokens[investment_objects[i]->investment_account_id] = std::make_pair(true, issue_amounts[i]);
-       }
-   });
+//    d.create<investment_dynamic_data_object>([&](investment_dynamic_data_object &io) {
+    //    io.current_supply = total_issue;
+    //    io.confidential_supply = total_issue;
+    //    io.investment_asset =  o.investment_asset_id;
+    //    for(decltype(investment_objects.size()) i = 0; i < investment_objects.size(); ++i) {
+    //        io.investment_tokens[investment_objects[i]->investment_account_id] = std::make_pair(true, issue_amounts[i]);
+    //    }
+//    });
 
-   db().modify(*asset_dyn_data, [&](asset_dynamic_data_object &data) {
+   for (decltype(investment_objects.size()) i = 0; i < investment_objects.size(); ++i) {
+       d.modify(*(investment_objects[i]), [&](asset_investment_object &obj) {
+           obj.has_receive_token = false;
+           obj.investment_tokens = issue_amounts[i];
+       });
+   }
+
+   d.modify(*asset_dyn_data, [&](asset_dynamic_data_object &data) {
        data.current_supply += total_issue;
+       data.investment_confidential_supply = total_issue;
+       data.investment_current_supply = total_issue;
    });
 
    return void_result();
