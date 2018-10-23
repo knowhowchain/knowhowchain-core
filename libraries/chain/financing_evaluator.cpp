@@ -34,13 +34,13 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
 { try {
    database& d = db();
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
-   KHC_EASSERT(khd_asset_object.symbol == KHD_ASSET_SYMBOL,"investment must be ${asset}",("asset",KHD_ASSET_SYMBOL));
+   KHC_EASSERT(khd_asset_object.symbol == KHD_ASSET_SYMBOL,"investment must use ${asset}",("asset",KHD_ASSET_SYMBOL));
    KHC_WASSERT(o.fee.amount >= 0,"invalid asset investment fee amount");
    KHC_WASSERT(o.amount.amount > 0,"invalid investment amount:${investment_amount}",
                ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
 
    asset account_khd_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
-   KHC_WASSERT( account_khd_asset >= o.amount,"account amount(${account_amount}) less than inverstment amount(${investment_amount})",
+   KHC_WASSERT( account_khd_asset >= o.amount,"account amount(${account_amount}) less than investment amount(${investment_amount})",
                 ("account_amount",khc::khc_amount_to_string(account_khd_asset.amount.value,khd_asset_object.precision))
                 ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
 
@@ -48,11 +48,21 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    KHC_WASSERT(!asset_obj.is_market_issued());
    KHC_WASSERT(o.investment_asset_id != asset_id_type(0),"can't investment ${asset}",("asset",GRAPHENE_SYMBOL));
 
+   const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
+   //KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing); XJTODO status need wait maintain
+
+   //amount
+   KHC_WASSERT(asset_dyn_data->financing_current_supply <= asset_obj.proj_options.max_issue_market_value,
+               "current_financing_amount:{$current_financing_amount},financing_amount:${max_financing_amount}",
+               ("current_financing_amount",asset_dyn_data->financing_current_supply)
+               ("max_financing_amount",asset_obj.proj_options.max_issue_market_value));
+
    const auto& dpo = d.get_dynamic_global_properties();
    const auto& po = d.get_global_properties();
    uint32_t start_block_num = asset_obj.proj_options.start_financing_block_num;
    uint32_t end_block_num = asset_obj.proj_options.start_financing_block_num + (asset_obj.proj_options.financing_cycle/po.parameters.block_interval);
    uint32_t curr_block_num = dpo.head_block_number;
+   //time
    KHC_WASSERT(curr_block_num>=asset_obj.proj_options.start_financing_block_num&&curr_block_num<=end_block_num,
                "current block num(${curr_block_num}) need betweent [${start_block_num},${end_block_num}]",
                ("curr_block_num",curr_block_num)("start_block_num",start_block_num)("end_block_num",end_block_num));
@@ -64,28 +74,46 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
 { try {
    database& d = db();
    const auto& dpo = d.get_dynamic_global_properties();
+   uint32_t curr_block_num = dpo.head_block_number;
    d.create<asset_investment_object>([&](asset_investment_object& s)
    {
        s.investment_account_id = o.account_id;
        s.investment_khd_amount = o.amount;
        s.investment_asset_id = o.investment_asset_id;
-       s.investment_height = dpo.head_block_number;
+       s.investment_height = curr_block_num;
        s.investment_timestamp = d.head_block_time();
        s.return_financing_flag = false;
    });
-   const asset_object& mia = d.get(o.investment_asset_id);
-   const asset_dynamic_data_object* asset_dyn_data = &mia.dynamic_asset_data_id(d);
-   d.modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data ){
-        data.financing_current_supply += o.amount.amount;
-        data.financing_confidential_supply += o.amount.amount;
+   const asset_object& asset_obj = d.get(o.investment_asset_id);
+   const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
+   share_type investment_amount = o.amount.amount;
+
+   //advance end finance
+   bool advance_end = asset_dyn_data->financing_current_supply+o.amount.amount>=asset_obj.proj_options.max_issue_market_value;
+   if(advance_end)
+   {
+       investment_amount = asset_obj.proj_options.max_issue_market_value - asset_dyn_data->financing_current_supply;
+       asset_obj.proj_options.end_financing_block_num = curr_block_num;
+   }
+
+   d.modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data )
+   {
+        data.financing_current_supply += investment_amount;
+        data.financing_confidential_supply += investment_amount;
+        data.state = asset_dynamic_data_object::project_state::financing_lock;
    });
 
-   d.adjust_balance( o.account_id , -o.amount );
+   d.adjust_balance( o.account_id , -investment_amount );
 
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
-   khc_dlog("account(${account}) investment asset(${asset}) ${investment_khd_amount} KHD.",
+   uint8_t precision = khd_asset_object.precision;
+   khc_dlog("account(${account}) investment asset(${asset}) ${investment_khd_amount} KHD.asset financing min amount:${financing_min_amount},"
+            "asset financing_max_amount:${financing_max_amount},current investment:${current_investment},",
             ("account",o.account_id)("asset",o.investment_asset_id)
-            ("investment_khd_amount",khc::khc_amount_to_string(o.amount.amount,khd_asset_object.precision)));
+            ("investment_khd_amount",khc::khc_amount_to_string(investment_amount,precision))
+            ("financing_min_amount",khc::khc_amount_to_string(asset_obj.proj_options.min_issue_market_value,precision))
+            ("financing_max_amount",khc::khc_amount_to_string(asset_obj.proj_options.max_issue_market_value,precision))
+            ("current_investment",khc::khc_amount_to_string(asset_dyn_data->financing_current_supply,precision)));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
