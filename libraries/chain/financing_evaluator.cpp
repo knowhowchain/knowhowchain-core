@@ -93,14 +93,18 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
    if(advance_end)
    {
        investment_amount = asset_obj.proj_options.max_issue_market_value - asset_dyn_data->financing_current_supply;
-       asset_obj.proj_options.end_financing_block_num = curr_block_num;
+       d.modify(asset_obj, [&](asset_object& a) {
+          a.proj_options.end_financing_block_num = curr_block_num;
+       });
    }
 
    d.modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data )
    {
         data.financing_current_supply += investment_amount;
         data.financing_confidential_supply += investment_amount;
-        data.state = asset_dynamic_data_object::project_state::financing_lock;
+        if(advance_end){
+            data.state = asset_dynamic_data_object::project_state::financing_lock;
+        }
    });
 
    d.adjust_balance( o.account_id , -investment_amount );
