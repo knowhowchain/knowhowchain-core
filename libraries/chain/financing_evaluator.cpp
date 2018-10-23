@@ -131,8 +131,8 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    const asset_object& investment_asset_object = o.investment_asset_id(d);
    KHC_WASSERT( !investment_asset_object.is_market_issued(), "Cannot manually issue a market-issued asset." );
    KHC_WASSERT( investment_asset_object.proj_options.name.size() != 0, "No project information." );
-   KHC_WASSERT( investment_asset_object.proj_options.max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "No project information." );
-   KHC_WASSERT( investment_asset_object.proj_options.min_transfer_ratio <= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO, "No project information." );
+   KHC_WASSERT( investment_asset_object.proj_options.max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "max_transfer_ratio must less than KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO." );
+   KHC_WASSERT( investment_asset_object.proj_options.min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO, "min_transfer_ratio must large than KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO." );
    ///LIUTODO KHC_WASSERT(investment_asset_object.proj_options.end_financing_block_num !=0, "Financing has not ended or has failed." );
 
    total_issue = (fc::uint128_t(investment_asset_object.options.max_supply.value) * investment_asset_object.proj_options.max_transfer_ratio / KHC_100_PERCENT).to_uint64();
@@ -224,7 +224,7 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
    KHC_WASSERT(vec.size() > 0,"this account has not invest any asset.");
    share_type total_investment(0);
    auto iter = vec.begin();
-   for(;iter!=vec.begin();iter++){
+   for(;iter!=vec.end();iter++){
        if((*iter).investment_asset_id == o.investment_asset_id && (*iter).return_financing_flag == false){
             total_investment += (*iter).investment_khd_amount.amount;
        }
