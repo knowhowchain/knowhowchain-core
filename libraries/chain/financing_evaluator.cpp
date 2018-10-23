@@ -248,7 +248,7 @@ void_result refund_investment_evaluator::do_apply( const refund_investment_opera
    });
 
    auto iter = vec.begin();
-   for(;iter!=vec.begin();iter++){
+   for(;iter!=vec.end();iter++){
        if((*iter).investment_asset_id == o.investment_asset_id && (*iter).return_financing_flag == false){
            d.modify( asset_dynamic, [&]( asset_dynamic_data_object& data ){
                 data.financing_current_supply -= (*iter).investment_khd_amount.amount;
