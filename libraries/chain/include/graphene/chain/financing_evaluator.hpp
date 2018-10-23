@@ -54,7 +54,6 @@ class issue_asset_to_investors_evaluator : public evaluator<issue_asset_to_inves
         const asset_dynamic_data_object* asset_dyn_data = nullptr;
         std::vector<const asset_investment_object*>           investment_objects;
         std::vector<share_type>           issue_amounts;
-        const asset_object* khd_asset_object = nullptr;
 
         void_result do_evaluate( const issue_asset_to_investors_operation& op );
         void_result do_apply( const issue_asset_to_investors_operation& op );

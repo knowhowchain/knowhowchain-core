@@ -2509,7 +2509,7 @@ public:
    {
       auto asset_obj = get_asset(symbol);
 
-      auto asset_investments = list_asset_investment(symbol);
+      auto asset_investments = list_asset_investment(symbol);//XJTODO remove it
 
       issue_asset_to_investors_operation issue_op;
     
@@ -3996,9 +3996,9 @@ vector<asset_investment_object> wallet_api::list_account_investment(string accou
     return my->list_account_investment(account);
 }
 
-investment_dynamic_data_object wallet_api::list_investment_issued_asset(string account)
+investment_dynamic_data_object wallet_api::list_investment_issued_asset(string asset)
 {
-    return my->list_investment_issued_asset(account);
+    return my->list_investment_issued_asset(asset);
 }
 
 signed_transaction wallet_api::refund_investment(string owner_account,string asset,bool broadcast)

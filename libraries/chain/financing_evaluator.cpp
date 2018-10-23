@@ -75,15 +75,6 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
    database& d = db();
    const auto& dpo = d.get_dynamic_global_properties();
    uint32_t curr_block_num = dpo.head_block_number;
-   d.create<asset_investment_object>([&](asset_investment_object& s)
-   {
-       s.investment_account_id = o.account_id;
-       s.investment_khd_amount = o.amount;
-       s.investment_asset_id = o.investment_asset_id;
-       s.investment_height = curr_block_num;
-       s.investment_timestamp = d.head_block_time();
-       s.return_financing_flag = false;
-   });
    const asset_object& asset_obj = d.get(o.investment_asset_id);
    const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
    asset actual_investment_amount = o.amount;
@@ -97,6 +88,16 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
           a.proj_options.end_financing_block_num = curr_block_num;
        });
    }
+
+   d.create<asset_investment_object>([&](asset_investment_object& s)
+   {
+       s.investment_account_id = o.account_id;
+       s.investment_khd_amount = actual_investment_amount;
+       s.investment_asset_id = o.investment_asset_id;
+       s.investment_height = curr_block_num;
+       s.investment_timestamp = d.head_block_time();
+       s.return_financing_flag = false;
+   });
 
    d.modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data )
    {
@@ -130,7 +131,7 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
 
    const asset_object& investment_asset_object = o.investment_asset_id(d);
    KHC_WASSERT( !investment_asset_object.is_market_issued(), "Cannot manually issue a market-issued asset." );
-   KHC_WASSERT( investment_asset_object.proj_options.name.size() != 0, "No project information." );
+   KHC_WASSERT( investment_asset_object.is_project_asset(), "No project information." );
    KHC_WASSERT( investment_asset_object.proj_options.max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO, "max_transfer_ratio must less than KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO." );
    KHC_WASSERT( investment_asset_object.proj_options.min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO, "min_transfer_ratio must large than KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO." );
    ///LIUTODO KHC_WASSERT(investment_asset_object.proj_options.end_financing_block_num !=0, "Financing has not ended or has failed." );
@@ -166,10 +167,8 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
                ("financing_confidential_supply", asset_dyn_data->financing_confidential_supply)("financing_current_supply", asset_dyn_data->financing_current_supply));
 
    const auto& assets_by_symbol = d.get_index_type<asset_index>().indices().get<by_symbol>();
-   vector<optional<asset_object> > result;
    auto itr = assets_by_symbol.find(KHD_ASSET_SYMBOL);
    KHC_WASSERT(itr != assets_by_symbol.end(), "No " KHD_ASSET_SYMBOL ".");
-   khd_asset_object = &(*itr);
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -224,15 +223,17 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
    KHC_WASSERT(vec.size() > 0,"this account has not invest any asset.");
    share_type total_investment(0);
    auto iter = vec.begin();
-   for(;iter!=vec.end();iter++){
-       if((*iter).investment_asset_id == o.investment_asset_id && (*iter).return_financing_flag == false){
-            total_investment += (*iter).investment_khd_amount.amount;
+   for(;iter!=vec.end();iter++)
+   {
+       const asset_investment_object& obj = *iter;
+       if(obj.investment_asset_id == o.investment_asset_id && !obj.return_financing_flag){
+            total_investment += obj.investment_khd_amount.amount;
        }
    }
 
-   KHC_WASSERT(asset_dynamic.financing_current_supply - total_investment >= 0,
-               "asset financing_current_supply(${crrent}) have not enough to refund account(${account}) total_investment(${investment}).",
-               ("crrent",asset_dynamic.financing_current_supply)("account",o.account_id)("investment",total_investment));
+   KHC_EASSERT(asset_dynamic.financing_current_supply - total_investment >= 0,
+               "asset financing_current_supply(${current}) have not enough to refund account(${account}) total_investment(${investment}).",
+               ("current",asset_dynamic.financing_current_supply)("account",o.account_id)("investment",total_investment));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
