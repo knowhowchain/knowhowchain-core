@@ -1366,8 +1366,8 @@ public:
           const auto khd_object = find_asset(KHD_ASSET_SYMBOL);
           share_type market_value = khc::convert_to_khd_amount(common.max_supply,common.core_exchange_rate,khd_object->options.core_exchange_rate);
           KHC_WASSERT(market_value.value > 0,"finacing amount must be large than 0.");
-          project_asset_opts->min_issue_market_value = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
-          project_asset_opts->max_issue_market_value = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();
+          project_asset_opts->min_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
+          project_asset_opts->max_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();
           const auto required_power = khc::power_required_for_finacing(market_value);
           KHC_WASSERT(required_power <= *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
           idump((power)(required_power)(project_asset_opts->min_transfer_ratio)(project_asset_opts->max_transfer_ratio));
@@ -3587,8 +3587,8 @@ khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
    khc_data.url = asset.proj_options.url;
    khc_data.min_transfer_ratio = asset.proj_options.min_transfer_ratio;
    khc_data.max_transfer_ratio = asset.proj_options.max_transfer_ratio;
-   khc_data.min_issue_market_value = asset.proj_options.min_issue_market_value;
-   khc_data.max_issue_market_value = asset.proj_options.max_issue_market_value;
+   khc_data.min_financing_amount = asset.proj_options.min_financing_amount;
+   khc_data.max_financing_amount = asset.proj_options.max_financing_amount;
    khc_data.start_financing_time = asset.proj_options.start_financing_time;
    khc_data.end_financing_time = asset.proj_options.start_financing_time + asset.proj_options.financing_cycle;
    khc_data.start_financing_block_num = asset.proj_options.start_financing_block_num;

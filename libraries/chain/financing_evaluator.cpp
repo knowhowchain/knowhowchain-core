@@ -52,10 +52,10 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    //KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing); XJTODO status need wait maintain
 
    //amount
-   KHC_WASSERT(asset_dyn_data->financing_current_supply < asset_obj.proj_options.max_issue_market_value,
+   KHC_WASSERT(asset_dyn_data->financing_current_supply < asset_obj.proj_options.max_financing_amount,
                "financing end,current_financing_amount:${current_financing_amount},financing_amount:${max_financing_amount}",
                ("current_financing_amount",asset_dyn_data->financing_current_supply)
-               ("max_financing_amount",asset_obj.proj_options.max_issue_market_value));
+               ("max_financing_amount",asset_obj.proj_options.max_financing_amount));
 
    const auto& dpo = d.get_dynamic_global_properties();
    const auto& po = d.get_global_properties();
@@ -80,10 +80,10 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
    asset actual_investment_amount = o.amount;
 
    //advance end finance
-   bool advance_end = asset_dyn_data->financing_current_supply+o.amount.amount>=asset_obj.proj_options.max_issue_market_value;
+   bool advance_end = asset_dyn_data->financing_current_supply+o.amount.amount>=asset_obj.proj_options.max_financing_amount;
    if(advance_end)
    {
-       actual_investment_amount.amount = asset_obj.proj_options.max_issue_market_value - asset_dyn_data->financing_current_supply;
+       actual_investment_amount.amount = asset_obj.proj_options.max_financing_amount - asset_dyn_data->financing_current_supply;
        d.modify(asset_obj, [&](asset_object& a) {
           a.proj_options.end_financing_block_num = curr_block_num;
        });
@@ -116,8 +116,8 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
             "asset financing_max_amount:${financing_max_amount},current investment:${current_investment},",
             ("account",o.account_id)("asset",o.investment_asset_id)
             ("investment_khd_amount",khc::khc_amount_to_string(actual_investment_amount.amount,precision))
-            ("financing_min_amount",khc::khc_amount_to_string(asset_obj.proj_options.min_issue_market_value,precision))
-            ("financing_max_amount",khc::khc_amount_to_string(asset_obj.proj_options.max_issue_market_value,precision))
+            ("financing_min_amount",khc::khc_amount_to_string(asset_obj.proj_options.min_financing_amount,precision))
+            ("financing_max_amount",khc::khc_amount_to_string(asset_obj.proj_options.max_financing_amount,precision))
             ("current_investment",khc::khc_amount_to_string(asset_dyn_data->financing_current_supply,precision)));
 
    return void_result();
@@ -208,9 +208,9 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
    auto exp_block_number = asset_o.proj_options.start_financing_block_num + diff;
    KHC_WASSERT(exp_block_number < dpo.head_block_number,"exp_block(${exp_block}) now_block(${now_block}) project has not expired!",
                ("exp_blokc",exp_block_number)("now_block",dpo.head_block_number));
-   KHC_WASSERT(asset_dynamic.financing_confidential_supply < asset_o.proj_options.min_issue_market_value,
-               "financing_confidential_supply(${confidential} large than min_issue_market_value(${minimum}),project has success already.",
-               ("confidential",asset_dynamic.financing_confidential_supply)("minimum",asset_o.proj_options.min_issue_market_value));
+   KHC_WASSERT(asset_dynamic.financing_confidential_supply < asset_o.proj_options.min_financing_amount,
+               "financing_confidential_supply(${confidential} large than min_financing_amount(${minimum}),project has success already.",
+               ("confidential",asset_dynamic.financing_confidential_supply)("minimum",asset_o.proj_options.min_financing_amount));
 */
    const auto& idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
    auto range = idx.equal_range(o.account_id);

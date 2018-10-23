@@ -141,7 +141,7 @@ void database::update_asset_project_states()
                  && dpo.head_block_number < end_of_financing_block_number){
 
             state = asset_dynamic_data_object::project_state::financing;
-        }else if(asset_dynamic.financing_confidential_supply < (*itr).proj_options.min_issue_market_value){
+        }else if(asset_dynamic.financing_confidential_supply < (*itr).proj_options.min_financing_amount){
 
             state = asset_dynamic_data_object::project_state::financing_failue;
         }else if(dpo.head_block_number <= end_of_project_block_number){

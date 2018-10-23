@@ -313,8 +313,8 @@ struct khcasset_data {
     uint16_t min_transfer_ratio = 0;
     uint16_t max_transfer_ratio = 0;
     ///financing amount
-    share_type min_issue_market_value=0;
-    share_type max_issue_market_value=0;
+    share_type min_financing_amount=0;
+    share_type max_financing_amount=0;
 
     fc::time_point_sec  start_financing_time;
     fc::time_point_sec  end_financing_time;
@@ -1840,8 +1840,8 @@ FC_REFLECT( graphene::wallet::khcasset_data,
             (url)
             (min_transfer_ratio)
             (max_transfer_ratio)
-            (min_issue_market_value)
-            (max_issue_market_value)
+            (min_financing_amount)
+            (max_financing_amount)
             (start_financing_time)
             (end_financing_time)
             (financing_cycle)

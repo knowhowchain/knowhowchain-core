@@ -186,6 +186,7 @@ void database::initialize_evaluators()
    register_evaluator<asset_investment_evaluator>();
    register_evaluator<issue_asset_to_investors_evaluator>();
    register_evaluator<refund_investment_evaluator>();
+   register_evaluator<claim_asset_investment_evaluator>();
 }
 
 void database::initialize_indexes()

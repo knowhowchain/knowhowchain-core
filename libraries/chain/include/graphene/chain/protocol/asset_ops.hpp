@@ -143,8 +143,8 @@ namespace graphene { namespace chain {
        uint16_t max_transfer_ratio = 0;
 
        ///financing amount
-       share_type min_issue_market_value=0;
-       share_type max_issue_market_value=0;
+       share_type min_financing_amount=0;
+       share_type max_financing_amount=0;
 
        ///The height of starting financing
        uint32_t start_financing_block_num= 0;
@@ -604,8 +604,8 @@ FC_REFLECT( graphene::chain::project_asset_options,
             (url)
             (min_transfer_ratio)
             (max_transfer_ratio)
-            (min_issue_market_value)
-            (max_issue_market_value)
+            (min_financing_amount)
+            (max_financing_amount)
             (start_financing_block_num)
             (end_financing_block_num)
             (start_financing_time)
