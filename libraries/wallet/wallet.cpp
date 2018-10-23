@@ -1364,8 +1364,10 @@ public:
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
 
           const auto khd_object = find_asset(KHD_ASSET_SYMBOL);
-          share_type market_value = khc::convert_to_khd_amount(common.max_supply,common.core_exchange_rate,khd_object->options.core_exchange_rate);
-          project_asset_opts->khd_exchange_rate = khd_object->options.core_exchange_rate;
+          const asset_bitasset_data_object& khd_bitasset_ob =  get_object(*(khd_object->bitasset_data_id));
+          project_asset_opts->khd_exchange_rate = khd_bitasset_ob.current_feed.settlement_price;
+          share_type market_value = khc::convert_to_khd_amount(common.max_supply,common.core_exchange_rate,khd_bitasset_ob.current_feed.settlement_price);
+
           KHC_WASSERT(market_value.value > 0,"finacing amount must be large than 0.");
           project_asset_opts->min_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
           project_asset_opts->max_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();

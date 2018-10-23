@@ -62,7 +62,8 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
    {
        auto khd_object_itr = asset_indx.find(KHD_ASSET_SYMBOL);
        FC_ASSERT( khd_object_itr != asset_indx.end(),"asset KHD must be exist.");
-       const auto finacing_amount = khc::convert_to_khd_amount(op.common_options.max_supply,op.common_options.core_exchange_rate,(*khd_object_itr).options.core_exchange_rate);
+       asset_bitasset_data_object khd_bitasset_ob =  (*khd_object_itr).bitasset_data(d);
+       const auto finacing_amount = khc::convert_to_khd_amount(op.common_options.max_supply,op.common_options.core_exchange_rate,khd_bitasset_ob.current_feed.settlement_price);
        const auto required_power = khc::power_required_for_finacing(finacing_amount);
        KHC_WASSERT(required_power <= *op.power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power.value)("power", *op.power));
 
