@@ -52,8 +52,8 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    //KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing); XJTODO status need wait maintain
 
    //amount
-   KHC_WASSERT(asset_dyn_data->financing_current_supply <= asset_obj.proj_options.max_issue_market_value,
-               "current_financing_amount:{$current_financing_amount},financing_amount:${max_financing_amount}",
+   KHC_WASSERT(asset_dyn_data->financing_current_supply < asset_obj.proj_options.max_issue_market_value,
+               "financing end,current_financing_amount:${current_financing_amount},financing_amount:${max_financing_amount}",
                ("current_financing_amount",asset_dyn_data->financing_current_supply)
                ("max_financing_amount",asset_obj.proj_options.max_issue_market_value));
 
@@ -86,13 +86,13 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
    });
    const asset_object& asset_obj = d.get(o.investment_asset_id);
    const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
-   share_type investment_amount = o.amount.amount;
+   asset actual_investment_amount = o.amount;
 
    //advance end finance
    bool advance_end = asset_dyn_data->financing_current_supply+o.amount.amount>=asset_obj.proj_options.max_issue_market_value;
    if(advance_end)
    {
-       investment_amount = asset_obj.proj_options.max_issue_market_value - asset_dyn_data->financing_current_supply;
+       actual_investment_amount.amount = asset_obj.proj_options.max_issue_market_value - asset_dyn_data->financing_current_supply;
        d.modify(asset_obj, [&](asset_object& a) {
           a.proj_options.end_financing_block_num = curr_block_num;
        });
@@ -100,21 +100,21 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
 
    d.modify( *asset_dyn_data, [&]( asset_dynamic_data_object& data )
    {
-        data.financing_current_supply += investment_amount;
-        data.financing_confidential_supply += investment_amount;
+        data.financing_current_supply += actual_investment_amount.amount;
+        data.financing_confidential_supply += actual_investment_amount.amount;
         if(advance_end){
             data.state = asset_dynamic_data_object::project_state::financing_lock;
         }
    });
 
-   d.adjust_balance( o.account_id , -investment_amount );
+   d.adjust_balance( o.account_id , -actual_investment_amount );
 
    const asset_object& khd_asset_object = d.get(o.amount.asset_id);
    uint8_t precision = khd_asset_object.precision;
    khc_dlog("account(${account}) investment asset(${asset}) ${investment_khd_amount} KHD.asset financing min amount:${financing_min_amount},"
             "asset financing_max_amount:${financing_max_amount},current investment:${current_investment},",
             ("account",o.account_id)("asset",o.investment_asset_id)
-            ("investment_khd_amount",khc::khc_amount_to_string(investment_amount,precision))
+            ("investment_khd_amount",khc::khc_amount_to_string(actual_investment_amount.amount,precision))
             ("financing_min_amount",khc::khc_amount_to_string(asset_obj.proj_options.min_issue_market_value,precision))
             ("financing_max_amount",khc::khc_amount_to_string(asset_obj.proj_options.max_issue_market_value,precision))
             ("current_investment",khc::khc_amount_to_string(asset_dyn_data->financing_current_supply,precision)));
