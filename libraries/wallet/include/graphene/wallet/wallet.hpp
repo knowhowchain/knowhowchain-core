@@ -1472,13 +1472,6 @@ class wallet_api
       vector<asset_investment_object> list_asset_investment(string asset);
       
       /**
-       * @brief list_investment_issued_asset
-       * @param asset is the name or id of the asset which investment by account
-       * @return
-       */
-      investment_dynamic_data_object list_investment_issued_asset(string asset);
-
-      /**
        * @brief list_account_investment
        * @param account the name or id of the account which investment
        * @return
@@ -1981,6 +1974,5 @@ FC_API( graphene::wallet::wallet_api,
         (list_account_investment)
         (refund_investment)
         (issue_asset_to_investors)
-        (list_investment_issued_asset)
         (claim_asset_investment)
       )

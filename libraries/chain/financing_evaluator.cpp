@@ -176,14 +176,6 @@ void_result issue_asset_to_investors_evaluator::do_apply( const issue_asset_to_i
 { try {
    database& d = db();
 
-//    d.create<investment_dynamic_data_object>([&](investment_dynamic_data_object &io) {
-    //    io.current_supply = total_issue;
-    //    io.confidential_supply = total_issue;
-    //    io.investment_asset =  o.investment_asset_id;
-    //    for(decltype(investment_objects.size()) i = 0; i < investment_objects.size(); ++i) {
-    //        io.investment_tokens[investment_objects[i]->investment_account_id] = std::make_pair(true, issue_amounts[i]);
-    //    }
-//    });
 
    for (decltype(investment_objects.size()) i = 0; i < investment_objects.size(); ++i) {
        d.modify(*(investment_objects[i]), [&](asset_investment_object &obj) {

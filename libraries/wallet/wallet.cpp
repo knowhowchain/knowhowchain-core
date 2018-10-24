@@ -1862,13 +1862,6 @@ public:
         return _remote_db->list_account_investment(get_account(account).id);
     }
 
-    investment_dynamic_data_object list_investment_issued_asset(string asset)
-    {
-        if( auto real_id = detail::maybe_id<asset_id_type>(asset) )
-           return _remote_db->list_investment_issued_asset(*real_id);
-        return _remote_db->list_investment_issued_asset(get_asset(asset).id);
-    }
-
     signed_transaction refund_investment(string owner_account,
                                                string asset,
                                                bool broadcast)
@@ -3997,11 +3990,6 @@ vector<asset_investment_object> wallet_api::list_asset_investment(string asset)
 vector<asset_investment_object> wallet_api::list_account_investment(string account)
 {
     return my->list_account_investment(account);
-}
-
-investment_dynamic_data_object wallet_api::list_investment_issued_asset(string asset)
-{
-    return my->list_investment_issued_asset(asset);
 }
 
 signed_transaction wallet_api::refund_investment(string owner_account,string asset,bool broadcast)
