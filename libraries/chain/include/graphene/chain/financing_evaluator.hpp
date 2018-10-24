@@ -78,6 +78,7 @@ class claim_bitasset_investment_evaluator : public evaluator<claim_bitasset_inve
 
         asset khd_amount;
         const asset_dynamic_data_object* dynamic_o = nullptr;
+        uint8_t claim_times;
         void_result do_evaluate( const claim_bitasset_investment_operation& op);
         void_result do_apply( const claim_bitasset_investment_operation& op);
 };

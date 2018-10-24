@@ -247,6 +247,9 @@ void_result refund_investment_evaluator::do_apply( const refund_investment_opera
 void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitasset_investment_operation& o )
 { try {
    database& d = db();
+   const auto& dpo = d.get_dynamic_global_properties();
+   const auto& po = d.get_global_properties();
+
    const asset_object& asset_o = d.get(o.asset_id);
    dynamic_o = &(d.get(asset_o.dynamic_asset_data_id));
    KHC_WASSERT(dynamic_o->claim_times < 3,"issuer has claim all asset already.");
@@ -254,28 +257,33 @@ void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitass
    KHC_WASSERT(asset_o.issuer == o.account_id,"account(${account} is not the issuer of asset(${asset}))",
                ("account",o.account_id)("asset",asset_o.symbol));
 
-   const auto& dpo = d.get_dynamic_global_properties();
-   const auto& po = d.get_global_properties();
+
+   auto financing_diff = asset_o.proj_options.financing_cycle / po.parameters.block_interval;
+   auto project_diff = asset_o.proj_options.project_cycle / po.parameters.block_interval;
+   auto end_financing_block_num = asset_o.proj_options.start_financing_block_num + financing_diff;
    share_type claim_amount;
    if(dynamic_o->claim_times == 0){
-       auto first_claim_block = asset_o.proj_options.end_financing_block_num + (po.parameters.maintenance_interval / po.parameters.block_interval);
+       auto first_claim_block = end_financing_block_num + (po.parameters.maintenance_interval / po.parameters.block_interval);
        KHC_WASSERT(dpo.head_block_number >= first_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",first_claim_block));
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
+       claim_times = dynamic_o->claim_times + 1;
    }else if(dynamic_o->claim_times == 1){
-       auto second_claim_block = asset_o.proj_options.end_financing_block_num + (asset_o.proj_options.project_cycle/ 2 / po.parameters.block_interval);
+       auto second_claim_block = end_financing_block_num + (project_diff/ 2);
        KHC_WASSERT(dpo.head_block_number >= second_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",second_claim_block));
 
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_SECOND_CLAIM_INVESTMENT_TATIO / KHC_100_PERCENT).to_uint64();
+       claim_times = dynamic_o->claim_times + 1;
    }else{
-       auto end_claim_block = asset_o.proj_options.end_financing_block_num + (asset_o.proj_options.project_cycle / po.parameters.block_interval);
+       auto end_claim_block = end_financing_block_num + project_diff;
        KHC_WASSERT(dpo.head_block_number >= end_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",end_claim_block));
 
        share_type claim_first =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
        share_type claim_second =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_SECOND_CLAIM_INVESTMENT_TATIO / KHC_100_PERCENT).to_uint64();
        claim_amount = dynamic_o->financing_confidential_supply - claim_first - claim_second;
+       claim_times = dynamic_o->claim_times + 1;
    }
 
    KHC_WASSERT(dynamic_o->financing_current_supply - claim_amount >= 0,"issuer claim amount(${amount}),but asset(${asset}) financing_current_supply(${csupply}) is not enough",
@@ -294,6 +302,7 @@ void_result claim_bitasset_investment_evaluator::do_apply( const claim_bitasset_
    d.adjust_balance(o.account_id,khd_amount);
    d.modify( *dynamic_o, [&]( asset_dynamic_data_object& s ){
         s.financing_current_supply -= khd_amount.amount;
+        s.claim_times = claim_times;
    });
 
    return void_result();
