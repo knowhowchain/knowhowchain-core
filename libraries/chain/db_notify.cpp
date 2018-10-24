@@ -271,11 +271,11 @@ struct get_impacted_account_visitor
    {
       _impacted.insert( op.fee_payer() );
    }
-   void operator()( const claim_asset_investment_operation& op )
+   void operator()( const claim_bitasset_investment_operation& op )
    {
       _impacted.insert( op.fee_payer() );
    }
-   void operator()( const investor_claims_token_operation& op )
+   void operator()( const claim_asset_investment_operation& op )
    {
       _impacted.insert( op.fee_payer() );
    }

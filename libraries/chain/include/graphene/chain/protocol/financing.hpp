@@ -81,7 +81,7 @@ struct refund_investment_operation : public base_operation
  *
  * account can investment asset
  */
-struct claim_asset_investment_operation : public base_operation
+struct claim_bitasset_investment_operation : public base_operation
 {
    struct fee_parameters_type { share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
@@ -104,7 +104,7 @@ struct claim_asset_investment_operation : public base_operation
  *
  * account can claim asset
  */
-struct investor_claims_token_operation : public base_operation
+struct claim_asset_investment_operation : public base_operation
 {
    struct fee_parameters_type { share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
@@ -129,14 +129,14 @@ FC_REFLECT( graphene::chain::issue_asset_to_investors_operation::fee_parameters_
 FC_REFLECT( graphene::chain::issue_asset_to_investors_operation,
             (fee)(issue)(investment_asset_id) )
 
-FC_REFLECT( graphene::chain::claim_asset_investment_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::claim_asset_investment_operation,
+FC_REFLECT( graphene::chain::claim_bitasset_investment_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::claim_bitasset_investment_operation,
             (fee)(account_id)(asset_id) )
 
 FC_REFLECT( graphene::chain::refund_investment_operation::fee_parameters_type, (fee) )
 FC_REFLECT( graphene::chain::refund_investment_operation,
             (fee)(account_id)(investment_asset_id) )
 
-FC_REFLECT( graphene::chain::investor_claims_token_operation::fee_parameters_type, (fee) )
-FC_REFLECT( graphene::chain::investor_claims_token_operation,
+FC_REFLECT( graphene::chain::claim_asset_investment_operation::fee_parameters_type, (fee) )
+FC_REFLECT( graphene::chain::claim_asset_investment_operation,
             (fee)(account_id)(asset_id) )

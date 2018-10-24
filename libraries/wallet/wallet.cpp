@@ -1827,7 +1827,7 @@ public:
        return sign_transaction( tx, broadcast );
     } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) )}
 
-   signed_transaction investor_claims_token(string owner_account,
+   signed_transaction claim_asset_investment(string owner_account,
                                        string asset,
                                        bool broadcast /*= false*/)
    {try {
@@ -1835,7 +1835,7 @@ public:
        asset_object asset_obj = get_asset(asset);
        KHC_WASSERT(!asset_obj.is_market_issued(), "${a} can't be a smart asset", ("a", asset));
 
-       investor_claims_token_operation op;
+       claim_asset_investment_operation op;
        op.account_id = owner_account_object.id;
        op.asset_id = asset_obj.id;
 
@@ -1847,7 +1847,7 @@ public:
        return sign_transaction( tx, broadcast );
     } FC_CAPTURE_AND_RETHROW( (owner_account)(asset)(broadcast) )}
 
-   signed_transaction claim_asset_investment(string owner_account,
+   signed_transaction claim_bitasset_investment(string owner_account,
                                        string asset,
                                        bool broadcast /*= false*/)
    {try {
@@ -1856,12 +1856,12 @@ public:
        KHC_WASSERT(!asset_obj.is_market_issued());
        KHC_WASSERT(asset_obj.issuer == from_account.get_id());
 
-       claim_asset_investment_operation claim_asset_investment_op;
-       claim_asset_investment_op.account_id = from_account.id;
-       claim_asset_investment_op.asset_id = asset_obj.id;
+       claim_bitasset_investment_operation claim_bitasset_investment_op;
+       claim_bitasset_investment_op.account_id = from_account.id;
+       claim_bitasset_investment_op.asset_id = asset_obj.id;
 
        signed_transaction tx;
-       tx.operations.push_back(claim_asset_investment_op);
+       tx.operations.push_back(claim_bitasset_investment_op);
        set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
        tx.validate();
 
@@ -3997,14 +3997,14 @@ signed_transaction wallet_api::investment_asset(string owner_account, string amo
     return my->investment_asset(owner_account,amount,asset,broadcast);
 }
 
+signed_transaction wallet_api::claim_bitasset_investment(string owner_account,string asset, bool broadcast)
+{
+    return my->claim_bitasset_investment(owner_account,asset,broadcast);
+}
+
 signed_transaction wallet_api::claim_asset_investment(string owner_account,string asset, bool broadcast)
 {
     return my->claim_asset_investment(owner_account,asset,broadcast);
-}
-
-signed_transaction wallet_api::investor_claims_token(string owner_account,string asset, bool broadcast)
-{
-    return my->investor_claims_token(owner_account,asset,broadcast);
 }
 
 vector<asset_investment_object> wallet_api::list_asset_investment(string asset)

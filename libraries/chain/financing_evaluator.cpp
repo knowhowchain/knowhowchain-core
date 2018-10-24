@@ -275,7 +275,7 @@ void_result refund_investment_evaluator::do_apply( const refund_investment_opera
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_investment_operation& o )
+void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitasset_investment_operation& o )
 { try {
    database& d = db();
    const asset_object& asset_o = d.get(o.asset_id);
@@ -305,7 +305,7 @@ void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_inv
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result claim_asset_investment_evaluator::do_apply( const claim_asset_investment_operation& o )
+void_result claim_bitasset_investment_evaluator::do_apply( const claim_bitasset_investment_operation& o )
 { try {
    database& d = db();
    const asset_object& asset_o = d.get(o.asset_id);
@@ -335,7 +335,7 @@ void_result claim_asset_investment_evaluator::do_apply( const claim_asset_invest
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result investor_claims_token_evaluator::do_evaluate( const investor_claims_token_operation& o )
+void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_investment_operation& o )
 { try {
    database& d = db();
    const asset_object& asset_o = d.get(o.asset_id);
@@ -361,7 +361,7 @@ void_result investor_claims_token_evaluator::do_evaluate( const investor_claims_
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
-void_result investor_claims_token_evaluator::do_apply( const investor_claims_token_operation& o )
+void_result claim_asset_investment_evaluator::do_apply( const claim_asset_investment_operation& o )
 { try {
    database& d = db();
 
@@ -373,7 +373,7 @@ void_result investor_claims_token_evaluator::do_apply( const investor_claims_tok
 
    for( const auto investment_object : investment_objects) {
        d.modify(*investment_object, [&](asset_investment_object &obj) {
-           obj.has_receive_token = false;
+           obj.has_receive_token = true;
        });
    }
 

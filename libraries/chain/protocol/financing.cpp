@@ -41,12 +41,12 @@ void refund_investment_operation::validate()const
     FC_ASSERT( fee.amount >= 0 );
 }
 
-void claim_asset_investment_operation::validate()const
+void claim_bitasset_investment_operation::validate()const
 {
     FC_ASSERT( fee.amount >= 0 );
 }
 
-void investor_claims_token_operation::validate()const
+void claim_asset_investment_operation::validate()const
 {
     FC_ASSERT( fee.amount >= 0 );
 }
