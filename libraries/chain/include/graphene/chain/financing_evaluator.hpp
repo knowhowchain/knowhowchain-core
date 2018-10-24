@@ -77,5 +77,16 @@ class claim_asset_investment_evaluator : public evaluator<claim_asset_investment
         void_result do_apply( const claim_asset_investment_operation& op);
 };
 
+class investor_claims_token_evaluator : public evaluator<investor_claims_token_evaluator>
+{
+    public:
+        typedef investor_claims_token_operation operation_type;
+
+        share_type tokens;
+        const asset_dynamic_data_object *asset_dyn_data = nullptr;
+        std::vector<const asset_investment_object *> investment_objects;
+        void_result do_evaluate( const investor_claims_token_operation& op);
+        void_result do_apply( const investor_claims_token_operation& op);
+};
 
 } } // graphene::chain

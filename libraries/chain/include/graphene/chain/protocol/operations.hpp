@@ -102,7 +102,8 @@ namespace graphene { namespace chain {
             asset_investment_operation,
             issue_asset_to_investors_operation,
             refund_investment_operation,
-            claim_asset_investment_operation
+            claim_asset_investment_operation,
+            investor_claims_token_operation
          > operation;
 
    /// @} // operations group

@@ -39,6 +39,8 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    KHC_WASSERT(o.amount.amount > 0,"invalid investment amount:${investment_amount}",
                ("investment_amount",khc::khc_amount_to_string(o.amount.amount.value,khd_asset_object.precision)));
 
+   KHC_WASSERT(is_authorized_asset(d, o.account_id(d), o.investment_asset_id(d)));
+
    asset account_khd_asset = d.get_balance(d.get(o.account_id), khd_asset_object);
    KHC_WASSERT( account_khd_asset >= o.amount,"account amount(${account_amount}) less than investment amount(${investment_amount})",
                 ("account_amount",khc::khc_amount_to_string(account_khd_asset.amount.value,khd_asset_object.precision))
@@ -142,6 +144,8 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    KHC_WASSERT(asset_dyn_data->financing_confidential_supply == asset_dyn_data->financing_current_supply,
                "financing_confidential_supply(${financing_confidential_supply}) != financing_current_supply(${financing_current_supply})",
                ("financing_confidential_supply", asset_dyn_data->financing_confidential_supply)("financing_current_supply", asset_dyn_data->financing_current_supply));
+   
+   KHC_WASSERT(asset_dyn_data->current_supply == 0, "May have already sent tokens to investors.");
 
    total_issue = (asset(asset_dyn_data->financing_confidential_supply, khd_id) * investemnt_asset_object.proj_options.khd_exchange_rate * investemnt_asset_object.options.core_exchange_rate).amount;
 
@@ -149,6 +153,8 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    auto range = idx.equal_range(o.investment_asset_id);
    share_type total_investment = 0;
    share_type total_issue_tmp = 0;
+   this->investment_objects.clear();
+   this->issue_amounts.clear();
    std::for_each(range.first, range.second,
                  [&](const asset_investment_object &obj) {
                      KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
@@ -329,4 +335,48 @@ void_result claim_asset_investment_evaluator::do_apply( const claim_asset_invest
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
 
+void_result investor_claims_token_evaluator::do_evaluate( const investor_claims_token_operation& o )
+{ try {
+   database& d = db();
+   const asset_object& asset_o = d.get(o.asset_id);
+   asset_dyn_data = &(d.get(asset_o.dynamic_asset_data_id));
+
+   tokens = 0;
+   const auto &idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
+   auto range = idx.equal_range(o.account_id);
+   std::for_each(range.first, range.second,
+                 [&](const asset_investment_object &obj) {
+                     KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
+                     if(obj.investment_asset_id == o.asset_id)
+                     {
+                         KHC_WASSERT(obj.has_receive_token == false, "${account} have already received ${a} assets.", ("account", o.account_id)("a", asset_o.symbol));
+                         tokens += obj.investment_tokens;
+                         this->investment_objects.push_back(&obj);
+                     }
+                 });
+   KHC_WASSERT(tokens > 0, "${account} is not an investor of ${a} assets.", ("account",o.account_id)("a", asset_o.symbol));
+   KHC_EASSERT(tokens <= asset_dyn_data->investment_current_supply, "tokens(${tokens}) exceeds the upper limit investment_current_supply(${s}).",
+               ("tokens", tokens)("s", asset_dyn_data->investment_current_supply));
+
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
+
+void_result investor_claims_token_evaluator::do_apply( const investor_claims_token_operation& o )
+{ try {
+   database& d = db();
+
+   d.adjust_balance( o.account_id, asset(tokens, o.asset_id) );
+
+   d.modify( *asset_dyn_data, [&]( asset_dynamic_data_object& a ){
+        a.investment_current_supply -= tokens;
+   });
+
+   for( const auto investment_object : investment_objects) {
+       d.modify(*investment_object, [&](asset_investment_object &obj) {
+           obj.has_receive_token = false;
+       });
+   }
+
+   return void_result();
+} FC_CAPTURE_AND_RETHROW( (o) ) }
 } } // graphene::chain

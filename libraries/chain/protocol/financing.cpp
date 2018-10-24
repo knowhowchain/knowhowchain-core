@@ -46,4 +46,9 @@ void claim_asset_investment_operation::validate()const
     FC_ASSERT( fee.amount >= 0 );
 }
 
+void investor_claims_token_operation::validate()const
+{
+    FC_ASSERT( fee.amount >= 0 );
+}
+
 }}// graphene::chain

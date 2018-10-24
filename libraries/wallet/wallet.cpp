@@ -1827,6 +1827,26 @@ public:
        return sign_transaction( tx, broadcast );
     } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) )}
 
+   signed_transaction investor_claims_token(string owner_account,
+                                       string asset,
+                                       bool broadcast /*= false*/)
+   {try {
+       account_object owner_account_object = get_account(owner_account);
+       asset_object asset_obj = get_asset(asset);
+       KHC_WASSERT(!asset_obj.is_market_issued(), "${a} can't be a smart asset", ("a", asset));
+
+       investor_claims_token_operation op;
+       op.account_id = owner_account_object.id;
+       op.asset_id = asset_obj.id;
+
+       signed_transaction tx;
+       tx.operations.push_back(op);
+       set_operation_fees( tx, _remote_db->get_global_properties().parameters.current_fees);
+       tx.validate();
+
+       return sign_transaction( tx, broadcast );
+    } FC_CAPTURE_AND_RETHROW( (owner_account)(asset)(broadcast) )}
+
    signed_transaction claim_asset_investment(string owner_account,
                                        string asset,
                                        bool broadcast /*= false*/)
@@ -3980,6 +4000,11 @@ signed_transaction wallet_api::investment_asset(string owner_account, string amo
 signed_transaction wallet_api::claim_asset_investment(string owner_account,string asset, bool broadcast)
 {
     return my->claim_asset_investment(owner_account,asset,broadcast);
+}
+
+signed_transaction wallet_api::investor_claims_token(string owner_account,string asset, bool broadcast)
+{
+    return my->investor_claims_token(owner_account,asset,broadcast);
 }
 
 vector<asset_investment_object> wallet_api::list_asset_investment(string asset)

@@ -1465,6 +1465,15 @@ class wallet_api
       signed_transaction claim_asset_investment(string owner_account,string asset,bool broadcast = false);
 
       /**
+       * @brief investor_claims_token
+       * @param owner_account the name or id of the account which asset belong
+       * @param asset is the name or id of the asset which investment by account
+       * @param broadcast
+       * @return
+       */
+      signed_transaction investor_claims_token(string owner_account,string asset,bool broadcast = false);
+
+      /**
        * @brief list_asset_investment
        * @param asset is the name or id of the asset which investment by account
        * @return
@@ -1975,4 +1984,5 @@ FC_API( graphene::wallet::wallet_api,
         (refund_investment)
         (issue_asset_to_investors)
         (claim_asset_investment)
+        (investor_claims_token)
       )

@@ -287,6 +287,10 @@ struct get_impacted_account_visitor
    {
        _impacted.insert( op.fee_payer() );
    }
+   void operator()( const investor_claims_token_operation& op )
+   {
+       _impacted.insert( op.fee_payer() );
+   }
 };
 
 void operation_get_impacted_accounts( const operation& op, flat_set<account_id_type>& result )
