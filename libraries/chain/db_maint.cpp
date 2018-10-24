@@ -140,7 +140,12 @@ void database::update_asset_project_states()
         }else if(dpo.head_block_number >= (*itr).proj_options.start_financing_block_num
                  && dpo.head_block_number < end_of_financing_block_number){
 
-            state = asset_dynamic_data_object::project_state::financing;
+            if(asset_dynamic.financing_confidential_supply == (*itr).proj_options.max_financing_amount){
+                state = asset_dynamic_data_object::project_state::financing_lock;
+            }else{
+                state = asset_dynamic_data_object::project_state::financing;
+            }
+
         }else if(asset_dynamic.financing_confidential_supply < (*itr).proj_options.min_financing_amount){
 
             state = asset_dynamic_data_object::project_state::financing_failue;

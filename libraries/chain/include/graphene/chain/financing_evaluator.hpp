@@ -64,6 +64,8 @@ class refund_investment_evaluator : public evaluator<refund_investment_evaluator
     public:
         typedef refund_investment_operation operation_type;
 
+        std::vector<const asset_investment_object *> investment_objects;
+        const asset_dynamic_data_object *asset_dynamic = nullptr;
         void_result do_evaluate( const refund_investment_operation& op );
         void_result do_apply( const refund_investment_operation& op );
 };
@@ -73,6 +75,9 @@ class claim_bitasset_investment_evaluator : public evaluator<claim_bitasset_inve
     public:
         typedef claim_bitasset_investment_operation operation_type;
 
+
+        asset khd_amount;
+        const asset_dynamic_data_object* dynamic_o = nullptr;
         void_result do_evaluate( const claim_bitasset_investment_operation& op);
         void_result do_apply( const claim_bitasset_investment_operation& op);
 };
