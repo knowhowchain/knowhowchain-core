@@ -61,10 +61,19 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
    share_type power_amount = (fc::uint128_t(o.amount.amount.value) / CONVERT_POWER_REFER_ASSET_RATE
                               / khd_price.base.amount.value * khd_price.quote.amount.value).to_uint64();
 
+   KHC_WASSERT(power_amount<=GRAPHENE_MAX_SHARE_SUPPLY,"power_amount:${power_amount} need less than ${max}",("power_amount",power_amount)("max",GRAPHENE_MAX_SHARE_SUPPLY));
+
    const account_power_index& balance_index = d.get_index_type<account_power_index>();
    auto range = balance_index.indices().get<by_account_power_from>().equal_range(boost::make_tuple(o.account));
 
    bool found = false;
+   share_type total = power_amount;
+   //get all power include locked
+   for (const account_power_object& power_object : boost::make_iterator_range(range.first, range.second)){
+       total += power_object.power_value;
+   }
+   KHC_WASSERT(total>=0&&total<=GRAPHENE_MAX_SHARE_SUPPLY,"total total_power_amount:${total} need in [0,${max}] ",("total",total)("max",GRAPHENE_MAX_SHARE_SUPPLY));
+
    for (const account_power_object& power_object : boost::make_iterator_range(range.first, range.second))
    {
        //all power
@@ -87,7 +96,6 @@ void_result power_convert_evaluator::do_apply( const power_convert_operation& o 
            s.power_value = power_amount;
        });
    }
-
 
    current_bitasset_data.current_feed.validate();
 
