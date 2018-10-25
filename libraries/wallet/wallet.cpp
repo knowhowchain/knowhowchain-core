@@ -3607,7 +3607,7 @@ khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
    khc_data.min_financing_amount = asset.proj_options.min_financing_amount;
    khc_data.max_financing_amount = asset.proj_options.max_financing_amount;
    khc_data.start_financing_time = asset.proj_options.start_financing_time;
-   khc_data.end_financing_time = asset.proj_options.start_financing_time + asset.proj_options.financing_cycle;
+   khc_data.end_financing_time = asset.proj_options.end_financing_time;
    khc_data.start_financing_block_num = asset.proj_options.start_financing_block_num;
    khc_data.end_financing_block_num = asset.proj_options.end_financing_block_num;
    khc_data.financing_cycle = asset.proj_options.financing_cycle;
