@@ -1396,6 +1396,7 @@ public:
 
           uint32_t diff = project_asset_opts->start_financing_block_num - head_block_number;
           project_asset_opts->start_financing_time = time_point_sec(diff * get_global_properties().parameters.block_interval + fc::time_point::now().time_since_epoch().to_seconds());
+          project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->financing_cycle; 
       }
 
       asset_create_operation create_op;
