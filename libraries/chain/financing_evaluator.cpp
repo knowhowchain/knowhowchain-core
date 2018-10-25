@@ -257,26 +257,25 @@ void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitass
    KHC_WASSERT(asset_o.issuer == o.account_id,"account(${account} is not the issuer of asset(${asset}))",
                ("account",o.account_id)("asset",asset_o.symbol));
 
-
-   auto financing_diff = asset_o.proj_options.financing_cycle / po.parameters.block_interval;
+   KHC_WASSERT(asset_o.proj_options.end_financing_block_num >= asset_o.proj_options.start_financing_block_num,"project is not financing end.")
    auto project_diff = asset_o.proj_options.project_cycle / po.parameters.block_interval;
-   auto end_financing_block_num = asset_o.proj_options.start_financing_block_num + financing_diff;
+
    share_type claim_amount;
    if(dynamic_o->claim_times == 0){
-       auto first_claim_block = end_financing_block_num + (po.parameters.maintenance_interval / po.parameters.block_interval);
+       auto first_claim_block = asset_o.proj_options.end_financing_block_num + (po.parameters.maintenance_interval / po.parameters.block_interval);
        KHC_WASSERT(dpo.head_block_number >= first_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",first_claim_block));
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
        claim_times = dynamic_o->claim_times + 1;
    }else if(dynamic_o->claim_times == 1){
-       auto second_claim_block = end_financing_block_num + (project_diff/ 2);
+       auto second_claim_block = asset_o.proj_options.end_financing_block_num + (project_diff/ 2);
        KHC_WASSERT(dpo.head_block_number >= second_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",second_claim_block));
 
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_SECOND_CLAIM_INVESTMENT_TATIO / KHC_100_PERCENT).to_uint64();
        claim_times = dynamic_o->claim_times + 1;
    }else{
-       auto end_claim_block = end_financing_block_num + project_diff;
+       auto end_claim_block = asset_o.proj_options.end_financing_block_num + project_diff;
        KHC_WASSERT(dpo.head_block_number >= end_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",end_claim_block));
 
