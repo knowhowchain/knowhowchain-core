@@ -262,7 +262,7 @@ void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitass
 
    share_type claim_amount;
    if(dynamic_o->claim_times == 0){
-       auto first_claim_block = asset_o.proj_options.end_financing_block_num + (po.parameters.maintenance_interval / po.parameters.block_interval);
+       auto first_claim_block = asset_o.proj_options.end_financing_block_num;
        KHC_WASSERT(dpo.head_block_number >= first_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",first_claim_block));
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
