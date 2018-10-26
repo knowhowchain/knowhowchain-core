@@ -1391,6 +1391,8 @@ public:
           uint32_t head_block_number = get_dynamic_global_properties().head_block_number;
           if (project_asset_opts->start_financing_block_num == 0)
               project_asset_opts->start_financing_block_num = head_block_number + 1;
+          auto financing_diff = project_asset_opts->financing_cycle / _remote_db->get_global_properties().parameters.block_interval;
+          project_asset_opts->end_financing_block_num = project_asset_opts->start_financing_block_num + financing_diff;
           KHC_WASSERT(project_asset_opts->start_financing_block_num >= head_block_number,
                       "The specified height ${sheight} is lower than the current height ${height}", ("sheight", project_asset_opts->start_financing_block_num)("height", head_block_number));
 

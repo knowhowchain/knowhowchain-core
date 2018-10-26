@@ -83,7 +83,7 @@ struct refund_investment_operation : public base_operation
  */
 struct claim_bitasset_investment_operation : public base_operation
 {
-   struct fee_parameters_type { share_type fee = 0 * GRAPHENE_BLOCKCHAIN_PRECISION; };
+   struct fee_parameters_type { share_type fee = 1 * GRAPHENE_BLOCKCHAIN_PRECISION; };
 
    /// Paid by authorizing_account
    asset fee;

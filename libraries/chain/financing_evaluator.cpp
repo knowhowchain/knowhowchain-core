@@ -154,7 +154,11 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    share_type total_investment = 0;
    share_type total_issue_tmp = 0;
    this->investment_objects.clear();
+   std::vector<const asset_investment_object *> empty;
+   this->investment_objects.swap(empty);
    this->issue_amounts.clear();
+   std::vector<share_type> share_empty;
+   this->issue_amounts.swap(share_empty);
    std::for_each(range.first, range.second,
                  [&](const asset_investment_object &obj) {
                      KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
@@ -208,7 +212,10 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
    KHC_WASSERT(asset_dynamic->state == asset_dynamic_data_object::project_state::financing_failue,"asset project is not in failed state.");
 
    share_type total_investment(0);
+   bool investment_flag(false);
    this->investment_objects.clear();
+   std::vector<const asset_investment_object *> empty;
+   this->investment_objects.swap(empty);
    const auto& idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
    auto range = idx.equal_range(o.account_id);
    std::for_each(range.first,range.second,
@@ -217,12 +224,20 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
        if(obj.investment_asset_id == o.investment_asset_id && !obj.return_financing_flag){
             total_investment += obj.investment_khd_amount.amount;
             this->investment_objects.push_back(&obj);
+       }else if(obj.investment_asset_id == o.investment_asset_id && obj.return_financing_flag){
+            investment_flag = true;
        }
    });
 
-   KHC_EASSERT(asset_dynamic->financing_current_supply - total_investment >= 0,
+   KHC_WASSERT(asset_dynamic->financing_current_supply - total_investment >= 0,
                "asset financing_current_supply(${current}) have not enough to refund account(${account}) total_investment(${investment}).",
                ("current",asset_dynamic->financing_current_supply)("account",o.account_id)("investment",total_investment));
+   if(investment_flag){
+       KHC_WASSERT(this->investment_objects.size() > 0,"account had refund investment in asset(${asset}) already.",("asset",asset_o.symbol));
+   }else{
+       KHC_WASSERT(this->investment_objects.size() > 0,"account has no investment to refund in asset(${asset})",("asset",asset_o.symbol));
+   }
+
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
@@ -253,14 +268,15 @@ void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitass
    const asset_object& asset_o = d.get(o.asset_id);
    dynamic_o = &(d.get(asset_o.dynamic_asset_data_id));
    KHC_WASSERT(dynamic_o->claim_times < 3,"issuer has claim all asset already.");
-   KHC_WASSERT(dynamic_o->financing_current_supply > 0,"asset(${asset}) has no investment less.",("asset",asset_o.symbol));
+   KHC_EASSERT(dynamic_o->financing_current_supply > 0,"asset(${asset}) has no investment less.",("asset",asset_o.symbol));
+   KHC_WASSERT(asset_o.is_issue_to_investors(d),"before claim bitasset investment, projecter need issue asset to investors at first.");
    KHC_WASSERT(asset_o.issuer == o.account_id,"account(${account} is not the issuer of asset(${asset}))",
                ("account",o.account_id)("asset",asset_o.symbol));
 
-   KHC_WASSERT(asset_o.proj_options.end_financing_block_num >= asset_o.proj_options.start_financing_block_num,"project is not financing end.")
+   KHC_WASSERT(dpo.head_block_number >= asset_o.proj_options.end_financing_block_num ,"project is not financing end.");
    auto project_diff = asset_o.proj_options.project_cycle / po.parameters.block_interval;
 
-   share_type claim_amount;
+   share_type claim_amount(0);
    if(dynamic_o->claim_times == 0){
        auto first_claim_block = asset_o.proj_options.end_financing_block_num;
        KHC_WASSERT(dpo.head_block_number >= first_claim_block,"now_block(${block}),next claim block(${nblock})",
@@ -317,12 +333,14 @@ void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_inv
    const auto &idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
    auto range = idx.equal_range(o.account_id);
    this->investment_objects.clear();
+   std::vector<const asset_investment_object *> empty;
+   this->investment_objects.swap(empty);
    std::for_each(range.first, range.second,
                  [&](const asset_investment_object &obj) {
                      KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
                      if(obj.investment_asset_id == o.asset_id)
                      {
-                         KHC_WASSERT(obj.has_receive_token == false, "${account} have already received ${a} assets.", ("account", o.account_id)("a", asset_o.symbol));
+                         KHC_WASSERT(obj.has_receive_token == false, "${account} have already claim ${a} assets.", ("account", o.account_id)("a", asset_o.symbol));
                          tokens += obj.investment_tokens;
                          this->investment_objects.push_back(&obj);
                      }

@@ -206,6 +206,10 @@ void_result asset_issue_evaluator::do_evaluate( const asset_issue_operation& o )
    FC_ASSERT( o.issuer == a.issuer );
    FC_ASSERT( !a.is_market_issued(), "Cannot manually issue a market-issued asset." );
 
+   if(a.is_project_asset()){
+       KHC_WASSERT(a.is_issue_to_investors(d),"before claim bitasset investment, projecter need issue asset to investors at first.");
+   }
+
    to_account = &o.issue_to_account(d);
    FC_ASSERT( is_authorized_asset( d, *to_account, a ) );
 

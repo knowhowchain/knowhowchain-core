@@ -191,7 +191,18 @@ namespace graphene { namespace chain {
             KHC_WASSERT( is_project_asset(), 
                        "Asset ${a} (${id}) is not a project asset.",
                        ("a",this->symbol)("id",this->id) );
-            return db.get( dynamic_asset_data_id ).state == asset_dynamic_data_object::project_state::financing_lock;
+            auto state = db.get( dynamic_asset_data_id ).state;
+
+            return  (state == asset_dynamic_data_object::project_state::financing_lock
+                     || state == asset_dynamic_data_object::project_state::project_end);
+         }
+
+         template<class DB>
+         bool is_issue_to_investors(const DB& db) const{
+             KHC_WASSERT( is_project_asset(),
+                        "Asset ${a} (${id}) is not a project asset.",
+                        ("a",this->symbol)("id",this->id) );
+             return db.get( dynamic_asset_data_id ).investment_confidential_supply > 0;
          }
 
          void validate()const

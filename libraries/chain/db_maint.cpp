@@ -129,9 +129,8 @@ void database::update_asset_project_states()
         }
         const auto& dpo = get_dynamic_global_properties();
         auto& gp = get_global_properties();
-        auto financing_diff = (*itr).proj_options.financing_cycle / gp.parameters.block_interval;
         auto project_diff = (*itr).proj_options.project_cycle / gp.parameters.block_interval;
-        auto end_of_financing_block_number = (*itr).proj_options.start_financing_block_num + financing_diff;
+        auto end_of_financing_block_number = (*itr).proj_options.end_financing_block_num;
         auto end_of_project_block_number = end_of_financing_block_number + project_diff;
         uint8_t state ;
         if(dpo.head_block_number < (*itr).proj_options.start_financing_block_num)
@@ -146,7 +145,8 @@ void database::update_asset_project_states()
                 state = asset_dynamic_data_object::project_state::financing;
             }
 
-        }else if(asset_dynamic.financing_confidential_supply < (*itr).proj_options.min_financing_amount){
+        }else if(dpo.head_block_number > end_of_financing_block_number
+                 &&asset_dynamic.financing_confidential_supply < (*itr).proj_options.min_financing_amount){
 
             state = asset_dynamic_data_object::project_state::financing_failue;
         }else if(dpo.head_block_number <= end_of_project_block_number){
