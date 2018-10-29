@@ -1408,6 +1408,7 @@ public:
               project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->financing_cycle;
 
           }else{
+              project_asset_opts->financing_type = 0;
               project_asset_opts->start_financing_block_num = head_block_number + 1;
               project_asset_opts->end_financing_block_num = project_asset_opts->start_financing_block_num + project_asset_opts->project_cycle / global_property_ob.parameters.block_interval;
               project_asset_opts->start_financing_time = time_point_sec(fc::time_point::now().time_since_epoch().to_seconds());

@@ -108,7 +108,7 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
         data.financing_current_supply += actual_investment_amount.amount;
         data.financing_confidential_supply += actual_investment_amount.amount;
         if(advance_end){
-            data.state = asset_dynamic_data_object::project_state::financing_lock;
+            data.state = asset_dynamic_data_object::project_state::project_in_progress;
         }
    });
 

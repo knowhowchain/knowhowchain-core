@@ -62,9 +62,8 @@ namespace graphene { namespace chain {
             about_to_start = 0,
             financing = 1,
             financing_failue = 2,
-            financing_lock = 3,
-            project_in_progress = 4, ///used for private offering
-            project_end = 5//XJTODO add vote fail
+            project_in_progress = 3,
+            project_end = 4//XJTODO add vote fail
          };
          static const uint8_t space_id = implementation_ids;
          static const uint8_t type_id  = impl_asset_dynamic_data_type;
@@ -200,7 +199,7 @@ namespace graphene { namespace chain {
                        ("a",this->symbol)("id",this->id) );
             auto state = db.get( dynamic_asset_data_id ).state;
 
-            return  (state == asset_dynamic_data_object::project_state::financing_lock
+            return  (state == asset_dynamic_data_object::project_state::project_in_progress
                      || state == asset_dynamic_data_object::project_state::project_end);
          }
 
@@ -370,7 +369,6 @@ FC_REFLECT_ENUM( graphene::chain::asset_dynamic_data_object::project_state,
                 (about_to_start)
                 (financing)
                 (financing_failue)
-                (financing_lock)
                 (project_in_progress)
                 (project_end)
               )

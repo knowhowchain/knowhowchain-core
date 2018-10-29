@@ -175,10 +175,10 @@ void database::update_asset_project_states()
             {
                 if(asset_dynamic.financing_confidential_supply == asset_obj.proj_options.max_financing_amount)
                 {
-                    if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_lock){
+                    if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_in_progress){
                         continue;
                     }
-                    state = asset_dynamic_data_object::project_state::financing_lock;
+                    state = asset_dynamic_data_object::project_state::project_in_progress;
                 }else
                 {
                     if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing){
@@ -194,10 +194,10 @@ void database::update_asset_project_states()
                 state = asset_dynamic_data_object::project_state::financing_failue;
                 update_asset_power_status(asset_obj,false);
             }else if(dpo.head_block_number <= end_of_project_block_number){
-                if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_lock){
+                if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_in_progress){
                     continue;
                 }
-                state = asset_dynamic_data_object::project_state::financing_lock;
+                state = asset_dynamic_data_object::project_state::project_in_progress;
             }else{
                 if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_end){
                     continue;
