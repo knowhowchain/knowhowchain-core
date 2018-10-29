@@ -141,6 +141,9 @@ void database::update_asset_power_status(const asset_object& asset_obj,bool burn
 
 void database::update_asset_project_states()
 {
+    const auto& dpo = get_dynamic_global_properties();
+    auto& gp = get_global_properties();
+
     const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_projasset_name>();
     auto itr = assets_by_symbol.upper_bound("");
     for(; itr != assets_by_symbol.end(); itr++)
@@ -149,57 +152,67 @@ void database::update_asset_project_states()
         if(!asset_obj.is_project_asset()){
             continue;
         }
+
         const asset_dynamic_data_object& asset_dynamic = asset_obj.dynamic_asset_data_id(*this);
         if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_end
                 || asset_dynamic.state == asset_dynamic_data_object::project_state::financing_failue){
             continue;
         }
-        const auto& dpo = get_dynamic_global_properties();
-        auto& gp = get_global_properties();
-        auto project_diff = asset_obj.proj_options.project_cycle / gp.parameters.block_interval;
-        auto end_of_financing_block_number = asset_obj.proj_options.end_financing_block_num;
-        auto end_of_project_block_number = end_of_financing_block_number + project_diff;
+
         uint8_t state ;
-        if(dpo.head_block_number < asset_obj.proj_options.start_financing_block_num)
-        {
-            if(asset_dynamic.state == asset_dynamic_data_object::project_state::about_to_start){
-                continue;
-            }
-            state = asset_dynamic_data_object::project_state::about_to_start;
-        }else if(dpo.head_block_number >= asset_obj.proj_options.start_financing_block_num
-                 && dpo.head_block_number < end_of_financing_block_number)
-        {
-            if(asset_dynamic.financing_confidential_supply == asset_obj.proj_options.max_financing_amount)
+        auto project_diff = asset_obj.proj_options.project_cycle / gp.parameters.block_interval;
+        if(asset_obj.is_public_offering()){
+            auto end_of_financing_block_number = asset_obj.proj_options.end_financing_block_num;
+            auto end_of_project_block_number = end_of_financing_block_number + project_diff;
+            if(dpo.head_block_number < asset_obj.proj_options.start_financing_block_num)
             {
+                if(asset_dynamic.state == asset_dynamic_data_object::project_state::about_to_start){
+                    continue;
+                }
+                state = asset_dynamic_data_object::project_state::about_to_start;
+            }else if(dpo.head_block_number >= asset_obj.proj_options.start_financing_block_num
+                     && dpo.head_block_number < end_of_financing_block_number)
+            {
+                if(asset_dynamic.financing_confidential_supply == asset_obj.proj_options.max_financing_amount)
+                {
+                    if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_lock){
+                        continue;
+                    }
+                    state = asset_dynamic_data_object::project_state::financing_lock;
+                }else
+                {
+                    if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing){
+                        continue;
+                    }
+                    state = asset_dynamic_data_object::project_state::financing;
+                }
+            }else if(dpo.head_block_number > end_of_financing_block_number
+                     &&asset_dynamic.financing_confidential_supply < asset_obj.proj_options.min_financing_amount){
+                if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_failue){
+                    continue;
+                }
+                state = asset_dynamic_data_object::project_state::financing_failue;
+                update_asset_power_status(asset_obj,false);
+            }else if(dpo.head_block_number <= end_of_project_block_number){
                 if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_lock){
                     continue;
                 }
                 state = asset_dynamic_data_object::project_state::financing_lock;
-            }else
-            {
-                if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing){
+            }else{
+                if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_end){
                     continue;
                 }
-                state = asset_dynamic_data_object::project_state::financing;
+                state = asset_dynamic_data_object::project_state::project_end;
             }
-        }else if(dpo.head_block_number > end_of_financing_block_number
-                 &&asset_dynamic.financing_confidential_supply < asset_obj.proj_options.min_financing_amount){
-            if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_failue){
-                continue;
-            }
-            state = asset_dynamic_data_object::project_state::financing_failue;
-            update_asset_power_status(asset_obj,false);
-        }else if(dpo.head_block_number <= end_of_project_block_number){
-            if(asset_dynamic.state == asset_dynamic_data_object::project_state::financing_lock){
-                continue;
-            }
-            state = asset_dynamic_data_object::project_state::financing_lock;
         }else{
-            if(asset_dynamic.state == asset_dynamic_data_object::project_state::project_end){
+            auto end_of_project_block_number = asset_obj.proj_options.start_financing_block_num + project_diff;
+            if(dpo.head_block_number >= end_of_project_block_number){
+                state = asset_dynamic_data_object::project_state::project_end;
+            }else{
                 continue;
             }
-            state = asset_dynamic_data_object::project_state::project_end;
         }
+
         khc_ilog("change asset(${name}) state ${curr_state} to ${state}",("name",asset_obj.symbol)
                  ("curr_state",asset_dynamic.state)("state",state));
         modify( asset_dynamic, [&]( asset_dynamic_data_object& obj ){

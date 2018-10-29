@@ -35,6 +35,7 @@ namespace graphene { namespace chain {
    {
       public:
          typedef asset_create_operation operation_type;
+         uint8_t state = asset_dynamic_data_object::project_state::about_to_start;
 
          void_result do_evaluate( const asset_create_operation& o );
          object_id_type do_apply( const asset_create_operation& o );
@@ -45,6 +46,7 @@ namespace graphene { namespace chain {
          virtual void pay_fee() override;
       private:
          bool fee_is_odd;
+
    };
 
    class asset_issue_evaluator : public evaluator<asset_issue_evaluator>

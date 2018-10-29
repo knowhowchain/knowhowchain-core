@@ -63,7 +63,8 @@ namespace graphene { namespace chain {
             financing = 1,
             financing_failue = 2,
             financing_lock = 3,
-            project_end = 4//XJTODO add vote fail
+            project_in_progress = 4, ///used for private offering
+            project_end = 5//XJTODO add vote fail
          };
          static const uint8_t space_id = implementation_ids;
          static const uint8_t type_id  = impl_asset_dynamic_data_type;
@@ -184,6 +185,12 @@ namespace graphene { namespace chain {
 
          bool is_project_asset() const {
              return proj_options.name != "";
+         }
+         bool is_public_offering() const {
+             KHC_WASSERT( is_project_asset(),
+                        "Asset ${a} (${id}) is not a project asset.",
+                        ("a",this->symbol)("id",this->id) );
+             return proj_options.financing_type == 1;
          }
 
          template<class DB>
@@ -364,6 +371,7 @@ FC_REFLECT_ENUM( graphene::chain::asset_dynamic_data_object::project_state,
                 (financing)
                 (financing_failue)
                 (financing_lock)
+                (project_in_progress)
                 (project_end)
               )
 FC_REFLECT_DERIVED( graphene::chain::asset_dynamic_data_object, (graphene::db::object),

@@ -263,15 +263,17 @@ void project_asset_options::validate()const
    FC_ASSERT( project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE * g_khc_project_asset_project_cycle_unit
               && project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE * g_khc_project_asset_project_cycle_unit);
    //KHCTODO check url
-   FC_ASSERT( min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO
-              && min_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO );
+   if(financing_type == 1){
+       FC_ASSERT( min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO
+                  && min_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO );
 
-   FC_ASSERT( max_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO
-              && max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO
-              && max_transfer_ratio > min_transfer_ratio);
+       FC_ASSERT( max_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO
+                  && max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO
+                  && max_transfer_ratio > min_transfer_ratio);
 
-   FC_ASSERT( financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE * g_khc_project_asset_financing_cycle_unit
-              && financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE * g_khc_project_asset_financing_cycle_unit);
+       FC_ASSERT( financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE * g_khc_project_asset_financing_cycle_unit
+                  && financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE * g_khc_project_asset_financing_cycle_unit);
+   }
 }
 
 } } // namespace graphene::chain

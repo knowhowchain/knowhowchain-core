@@ -327,6 +327,9 @@ struct khcasset_data {
 
     ///Up to 4 weeks
     uint64_t  financing_cycle=0;
+
+    /// 0-private offering ; 1-public offering
+    uint8_t financing_type=0;
     
     share_type financing_current_supply;
     share_type financing_confidential_supply;
@@ -1900,7 +1903,6 @@ FC_API( graphene::wallet::wallet_api,
         (issue_asset)
         (get_asset)
         (get_bitasset_data)
-        (get_khcasset_data)
         (fund_asset_fee_pool)
         (claim_asset_fee_pool)
         (reserve_asset)
@@ -1985,4 +1987,5 @@ FC_API( graphene::wallet::wallet_api,
         (issue_asset_to_investors)
         (claim_bitasset_investment)
         (claim_asset_investment)
+        (get_khcasset_data)
       )

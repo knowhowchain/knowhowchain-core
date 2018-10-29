@@ -85,7 +85,7 @@
 
 // explicit instantiation for later use
 namespace fc {
-	template class api<graphene::wallet::wallet_api, identity_member>;
+    template class api<graphene::wallet::wallet_api, identity_member>;
 }
 
 #define BRAIN_KEY_WORD_COUNT 16
@@ -305,7 +305,7 @@ class type_list<T1, Rest...>
         }
         return rest.visit_mem(mem_name, f);
     }
-        
+
   private:
     T1& t;
     type_list<Rest... > rest;
@@ -314,7 +314,7 @@ class type_list<T1, Rest...>
 template<>
 class type_list<>
 {
-  public:    
+  public:
     template<typename F>
     bool visit_mem(const char* mem_name, F f)
     {
@@ -339,7 +339,7 @@ class assign_function
 
     template<typename R>
     bool assign(R* rhs, typename std::enable_if<
-            std::is_assignable<decltype(lhs), decltype(*rhs)>::value && 
+            std::is_assignable<decltype(lhs), decltype(*rhs)>::value &&
             (!assign_only_if_same_type || std::is_same<decltype(lhs), decltype(*rhs)>::value), int>::type = 0)  // assignable
     {
         lhs = *rhs;
@@ -360,13 +360,13 @@ class copy_visitor
     {
     }
 
-    template<typename Mem, typename T, Mem T::* mem_ptr> 
+    template<typename Mem, typename T, Mem T::* mem_ptr>
     void operator()(const char *mem_name) const
     {
         const bool assign_only_when_same_type = true;
         from.visit_mem(mem_name, assign_function<Mem, assign_only_when_same_type>(to.*mem_ptr));
     }
-    
+
   private:
     To& to;
     From& from;
@@ -1352,16 +1352,13 @@ public:
    { try {
       account_object issuer_account = get_account( issuer );
       FC_ASSERT(!find_asset(symbol).valid(), "Asset with that symbol already exists!");
-      fc::optional<share_type> power;
+      fc::optional<share_type> power(0);
       if (project_asset_opts.valid())
       {
           KHC_WASSERT(project_asset_opts->name.size() != 0, "Asset must have a project name.");
 
           KHC_WASSERT(!find_asset_by_project_name(project_asset_opts->name).valid(), "${prj_name} is already exists!", ("prj_name", project_asset_opts->name));
-          KHC_WASSERT(project_asset_opts->min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO,"min_transfer_ratio:${min_ratio} must be large than ${khc_min_ratio}",
-                      ("min_ratio",project_asset_opts->min_transfer_ratio)("khc_min_ratio",KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO));
-          KHC_WASSERT(project_asset_opts->max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO,"max_transfer_ratio:${max_ratio} must be less than ${khc_max_ratio}",
-                      ("max_ratio",project_asset_opts->max_transfer_ratio)("khc_max_ratio",KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO));
+
           power = khc::khc_amount_from_string(get_account_power(issuer, khc::power_from_all), GRAPHENE_BLOCKCHAIN_PRECISION_DIGITS);
 
           const auto khd_object = find_asset(KHD_ASSET_SYMBOL);
@@ -1370,36 +1367,54 @@ public:
           share_type market_value = khc::convert_to_khd_amount(common.max_supply,common.core_exchange_rate,khd_bitasset_ob.current_feed.settlement_price);
 
           KHC_WASSERT(market_value.value > 0,"market value must be large than 0.");
-          project_asset_opts->min_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
-          project_asset_opts->max_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();
           const auto required_power = khc::power_required_for_finacing(market_value);
           KHC_WASSERT(required_power <= *power, "Power is not enough! power needs at least ${min}, and you only have ${power}", ("min", required_power)("power", *power));
-          idump((power)(required_power)(project_asset_opts->min_transfer_ratio)(project_asset_opts->max_transfer_ratio));
+          idump((power)(required_power));
           power = required_power;
-
 
           KHC_WASSERT(project_asset_opts->project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE &&
                           project_asset_opts->project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE,
                       "project_cycle must be in range (${min_proj_cycle}, ${max_proj_cycle})", ("min_proj_cycle", KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE)("max_proj_cycle", KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE));
           project_asset_opts->project_cycle *= g_khc_project_asset_project_cycle_unit;
 
-          KHC_WASSERT( project_asset_opts->financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE &&
-                       project_asset_opts->financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE,
-                      "financing_cycle must be in range (${min_finac_cycle}, ${max_finac_cycle})", ("min_finac_cycle", KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE)("max_finac_cycle", KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE)
-                      );
-          project_asset_opts->financing_cycle *= g_khc_project_asset_financing_cycle_unit;
-
           uint32_t head_block_number = get_dynamic_global_properties().head_block_number;
-          if (project_asset_opts->start_financing_block_num == 0)
-              project_asset_opts->start_financing_block_num = head_block_number + 1;
-          auto financing_diff = project_asset_opts->financing_cycle / _remote_db->get_global_properties().parameters.block_interval;
-          project_asset_opts->end_financing_block_num = project_asset_opts->start_financing_block_num + financing_diff;
-          KHC_WASSERT(project_asset_opts->start_financing_block_num >= head_block_number,
-                      "The specified height ${sheight} is lower than the current height ${height}", ("sheight", project_asset_opts->start_financing_block_num)("height", head_block_number));
+          global_property_object global_property_ob = get_global_properties();
+          if(project_asset_opts->financing_type == 1){
+              idump((project_asset_opts->min_transfer_ratio)(project_asset_opts->max_transfer_ratio));
+              KHC_WASSERT(project_asset_opts->min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO,"min_transfer_ratio:${min_ratio} must be large than ${khc_min_ratio}",
+                          ("min_ratio",project_asset_opts->min_transfer_ratio)("khc_min_ratio",KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO));
+              KHC_WASSERT(project_asset_opts->max_transfer_ratio <= KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO,"max_transfer_ratio:${max_ratio} must be less than ${khc_max_ratio}",
+                          ("max_ratio",project_asset_opts->max_transfer_ratio)("khc_max_ratio",KHC_PROJECT_ASSET_MAX_TRANSFER_RATIO));
 
-          uint32_t diff = project_asset_opts->start_financing_block_num - head_block_number;
-          project_asset_opts->start_financing_time = time_point_sec(diff * get_global_properties().parameters.block_interval + fc::time_point::now().time_since_epoch().to_seconds());
-          project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->financing_cycle; 
+              project_asset_opts->min_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->min_transfer_ratio / KHC_100_PERCENT).to_uint64();
+              project_asset_opts->max_financing_amount = (fc::uint128(market_value.value) * project_asset_opts->max_transfer_ratio / KHC_100_PERCENT).to_uint64();
+
+              KHC_WASSERT( project_asset_opts->financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE &&
+                           project_asset_opts->financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE,
+                          "financing_cycle must be in range (${min_finac_cycle}, ${max_finac_cycle})", ("min_finac_cycle", KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE)("max_finac_cycle", KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE)
+                          );
+              project_asset_opts->financing_cycle *= g_khc_project_asset_financing_cycle_unit;
+
+
+              if (project_asset_opts->start_financing_block_num == 0)
+                  project_asset_opts->start_financing_block_num = head_block_number + 1;
+              auto financing_diff = project_asset_opts->financing_cycle / global_property_ob.parameters.block_interval;
+              project_asset_opts->end_financing_block_num = project_asset_opts->start_financing_block_num + financing_diff;
+              KHC_WASSERT(project_asset_opts->start_financing_block_num >= head_block_number,
+                          "The specified height ${sheight} is lower than the current height ${height}", ("sheight", project_asset_opts->start_financing_block_num)("height", head_block_number));
+
+              uint32_t diff = project_asset_opts->start_financing_block_num - head_block_number;
+              project_asset_opts->start_financing_time = time_point_sec(diff * global_property_ob.parameters.block_interval + fc::time_point::now().time_since_epoch().to_seconds());
+              project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->financing_cycle;
+
+          }else{
+              project_asset_opts->start_financing_block_num = head_block_number + 1;
+              project_asset_opts->end_financing_block_num = project_asset_opts->start_financing_block_num + project_asset_opts->project_cycle / global_property_ob.parameters.block_interval;
+              project_asset_opts->start_financing_time = time_point_sec(fc::time_point::now().time_since_epoch().to_seconds());
+              project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->project_cycle;
+              project_asset_opts->min_transfer_ratio = 0;
+              project_asset_opts->max_transfer_ratio = 0;
+          }
       }
 
       asset_create_operation create_op;
@@ -2529,10 +2544,10 @@ public:
    {
       auto asset_obj = get_asset(symbol);
       issue_asset_to_investors_operation issue_op;
-    
+
       issue_op.issue = asset_obj.issuer;
       issue_op.investment_asset_id = asset_obj.id;
-      
+
       signed_transaction tx;
       tx.operations.push_back(issue_op);
       set_operation_fees(tx,_remote_db->get_global_properties().parameters.current_fees);
@@ -3619,6 +3634,7 @@ khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
    khc_data.start_financing_block_num = asset.proj_options.start_financing_block_num;
    khc_data.end_financing_block_num = asset.proj_options.end_financing_block_num;
    khc_data.financing_cycle = asset.proj_options.financing_cycle;
+   khc_data.financing_type = asset.proj_options.financing_type;
 
    khc_data.financing_current_supply = asset_dny_data.financing_current_supply;
    khc_data.financing_confidential_supply = asset_dny_data.financing_confidential_supply;

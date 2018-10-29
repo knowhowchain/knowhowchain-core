@@ -49,6 +49,7 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    const asset_object& asset_obj = d.get(o.investment_asset_id);
    KHC_WASSERT(!asset_obj.is_market_issued());
    KHC_WASSERT(o.investment_asset_id != asset_id_type(0),"can't investment ${asset}",("asset",GRAPHENE_SYMBOL));
+   KHC_WASSERT(asset_obj.is_public_offering(),"asset must be a public offering type.");
 
    const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
    //KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing); XJTODO status need wait maintain
@@ -133,6 +134,7 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    KHC_WASSERT(o.fee.amount >= 0, "invalid issue_asset_and_get_financing fee amount.");
 
    const asset_object& investment_asset_object = o.investment_asset_id(d);
+   KHC_WASSERT(investment_asset_object.is_public_offering(),"asset must be a public offering type.");
    KHC_WASSERT( !investment_asset_object.is_market_issued(), "Cannot manually issue a market-issued asset." );
    KHC_WASSERT( investment_asset_object.is_financing_end(d), "Financing is not over." );
 
@@ -208,6 +210,7 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
    database& d = db();
 
    const asset_object& asset_o = d.get(o.investment_asset_id);
+   KHC_WASSERT(asset_o.is_public_offering(),"asset must be a public offering type.");
    asset_dynamic = &(asset_o.dynamic_asset_data_id(d));
    KHC_WASSERT(asset_dynamic->state == asset_dynamic_data_object::project_state::financing_failue,"asset project is not in failed state.");
 
@@ -266,6 +269,7 @@ void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitass
    const auto& po = d.get_global_properties();
 
    const asset_object& asset_o = d.get(o.asset_id);
+   KHC_WASSERT(asset_o.is_public_offering(),"asset must be a public offering type.");
    dynamic_o = &(d.get(asset_o.dynamic_asset_data_id));
    KHC_WASSERT(dynamic_o->claim_times < 3,"issuer has claim all asset already.");
    KHC_EASSERT(dynamic_o->financing_current_supply > 0,"asset(${asset}) has no investment less.",("asset",asset_o.symbol));
@@ -327,6 +331,7 @@ void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_inv
 { try {
    database& d = db();
    const asset_object& asset_o = d.get(o.asset_id);
+   KHC_WASSERT(asset_o.is_public_offering(),"asset must be a public offering type.");
    asset_dyn_data = &(d.get(asset_o.dynamic_asset_data_id));
 
    tokens = 0;

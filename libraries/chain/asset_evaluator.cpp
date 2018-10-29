@@ -74,7 +74,14 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
 
        KHC_WASSERT(op.project_asset_opts->start_financing_block_num >= d.get_dynamic_global_properties().head_block_number,
                    "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->start_financing_block_num)("height", d.get_dynamic_global_properties().head_block_number));
-       FC_ASSERT( op.project_asset_opts->end_financing_time == op.project_asset_opts->start_financing_time + op.project_asset_opts->financing_cycle );
+
+       if(op.project_asset_opts->financing_type == 1){
+           state = asset_dynamic_data_object::project_state::about_to_start;
+           FC_ASSERT( op.project_asset_opts->end_financing_time == op.project_asset_opts->start_financing_time + op.project_asset_opts->financing_cycle );
+       }else{
+           state = asset_dynamic_data_object::project_state::project_in_progress;
+           FC_ASSERT( op.project_asset_opts->end_financing_time == op.project_asset_opts->start_financing_time + op.project_asset_opts->project_cycle );
+       }
    }
 
 
@@ -145,6 +152,7 @@ object_id_type asset_create_evaluator::do_apply( const asset_create_operation& o
       db().create<asset_dynamic_data_object>( [&]( asset_dynamic_data_object& a ) {
          a.current_supply = 0;
          a.fee_pool = core_fee_paid - (hf_429 ? 1 : 0);
+         a.state = state;
       });
    if( fee_is_odd && !hf_429 )
    {

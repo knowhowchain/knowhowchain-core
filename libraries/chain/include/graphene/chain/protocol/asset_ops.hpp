@@ -159,6 +159,9 @@ namespace graphene { namespace chain {
        ///Up to 4 weeks
        uint64_t  financing_cycle=0;
 
+       /// 0-private offering ; 1-public offering
+       uint8_t financing_type=0;
+
        extensions_type extensions;
 
        /// Perform internal consistency checks.
@@ -615,6 +618,7 @@ FC_REFLECT( graphene::chain::project_asset_options,
             (end_financing_time)
             (khd_exchange_rate)
             (financing_cycle)
+            (financing_type)
             (extensions)
           )
 
