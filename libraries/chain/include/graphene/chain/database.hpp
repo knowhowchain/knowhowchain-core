@@ -472,6 +472,7 @@ namespace graphene { namespace chain {
          void update_asset_project_states();
          void process_bids( const asset_bitasset_data_object& bad );
          void process_bitassets();
+         void update_asset_power_status(const asset_object& asset_obj,bool burn);
 
          template<class... Types>
          void perform_account_maintenance(std::tuple<Types...> helpers);

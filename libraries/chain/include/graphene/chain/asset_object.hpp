@@ -63,7 +63,7 @@ namespace graphene { namespace chain {
             financing = 1,
             financing_failue = 2,
             financing_lock = 3,
-            project_end = 4
+            project_end = 4//XJTODO add vote fail
          };
          static const uint8_t space_id = implementation_ids;
          static const uint8_t type_id  = impl_asset_dynamic_data_type;

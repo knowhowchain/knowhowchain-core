@@ -58,6 +58,7 @@ namespace graphene { namespace chain {
       uint8_t power_from;
       share_type power_value;
       share_type unlock_height;
+      asset_id_type asset_id;
    };
 
    /**
@@ -460,7 +461,7 @@ FC_REFLECT_DERIVED( graphene::chain::account_power_object,
 
 FC_REFLECT_DERIVED( graphene::chain::account_locked_power_object,
                     (graphene::db::object),
-                    (owner)(power_from)(power_value)(unlock_height) )
+                    (owner)(power_from)(power_value)(unlock_height)(asset_id) )
 
 FC_REFLECT_DERIVED( graphene::chain::account_balance_object,
                     (graphene::db::object),

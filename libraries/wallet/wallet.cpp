@@ -134,6 +134,7 @@ public:
    std::string operator()(const account_create_operation& op)const;
    std::string operator()(const account_update_operation& op)const;
    std::string operator()(const asset_create_operation& op)const;
+   std::string operator()(const asset_investment_operation& op)const;
 };
 
 template<class T>
@@ -2527,9 +2528,6 @@ public:
    signed_transaction issue_asset_to_investors(string symbol, bool broadcast = false)
    {
       auto asset_obj = get_asset(symbol);
-
-      auto asset_investments = list_asset_investment(symbol);//XJTODO remove it
-
       issue_asset_to_investors_operation issue_op;
     
       issue_op.issue = asset_obj.issuer;
@@ -3237,6 +3235,14 @@ std::string operation_printer::operator()(const asset_create_operation& op) cons
       out << "User-Issue Asset ";
    out << "'" << op.symbol << "' with issuer " << wallet.get_account(op.issuer).name;
    return fee(op.fee);
+}
+
+std::string operation_printer::operator()(const asset_investment_operation& op) const
+{
+    out << wallet.get_account(op.account_id).name << " investment asset ";
+    out << wallet.get_asset(op.investment_asset_id).symbol;
+    out << " " << wallet.get_asset(KHD_ASSET_SYMBOL).amount_to_pretty_string(op.amount);
+    return fee(op.fee);
 }
 
 std::string operation_result_printer::operator()(const void_result& x) const

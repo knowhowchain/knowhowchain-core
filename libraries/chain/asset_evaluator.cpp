@@ -165,18 +165,6 @@ object_id_type asset_create_evaluator::do_apply( const asset_create_operation& o
             a.asset_id = next_asset_id;
          }).id;
 
-   if (op.project_asset_opts.valid())
-   {
-       db().create<account_locked_power_object>([&](account_locked_power_object& s)
-       {
-           s.owner = op.issuer;
-           s.power_from = graphene::khc::power_from_locked;
-           s.power_value = *op.power;
-           const auto& global_properties = db().get_global_properties();
-           s.unlock_height = db().head_block_num() + op.project_asset_opts->project_cycle /
-                   global_properties.parameters.block_interval;
-       });
-   }
    const asset_object& new_asset =
      db().create<asset_object>( [&]( asset_object& a ) {
          a.issuer = op.issuer;
@@ -193,6 +181,21 @@ object_id_type asset_create_evaluator::do_apply( const asset_create_operation& o
          if( op.bitasset_opts.valid() )
             a.bitasset_data_id = bit_asset_id;
       });
+
+   if (op.project_asset_opts.valid())
+   {
+       db().create<account_locked_power_object>([&](account_locked_power_object& s)
+       {
+           s.owner = op.issuer;
+           s.power_from = graphene::khc::power_from_locked;
+           s.power_value = *op.power;
+           const auto& global_properties = db().get_global_properties();
+           s.unlock_height = db().head_block_num() + op.project_asset_opts->project_cycle /
+                   global_properties.parameters.block_interval;
+           s.asset_id = new_asset.get_id();
+       });
+   }
+
    assert( new_asset.id == next_asset_id );
 
    return new_asset.id;

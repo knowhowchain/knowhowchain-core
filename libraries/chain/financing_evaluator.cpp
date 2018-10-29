@@ -229,7 +229,7 @@ void_result refund_investment_evaluator::do_evaluate( const refund_investment_op
        }
    });
 
-   KHC_WASSERT(asset_dynamic->financing_current_supply - total_investment >= 0,
+   KHC_EASSERT(asset_dynamic->financing_current_supply - total_investment >= 0,
                "asset financing_current_supply(${current}) have not enough to refund account(${account}) total_investment(${investment}).",
                ("current",asset_dynamic->financing_current_supply)("account",o.account_id)("investment",total_investment));
    if(investment_flag){

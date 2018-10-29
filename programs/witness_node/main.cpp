@@ -251,9 +251,6 @@ int main(int argc, char** argv) {
       node->initialize(data_dir, options);
       node->initialize_plugins( options );
 
-      node->startup();
-      node->startup_plugins();
-
       if( options.count("test") )
       {
          g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_TEST_FINANCING_CYCLE_UNIT;
@@ -264,6 +261,9 @@ int main(int argc, char** argv) {
          g_khc_project_asset_financing_cycle_unit = KHC_PROJECT_ASSET_FINANCING_CYCLE_UNIT;
          g_khc_project_asset_project_cycle_unit = KHC_PROJECT_ASSET_PROJECT_CYCLE_UNIT;
       }
+
+      node->startup();
+      node->startup_plugins();
 
       fc::promise<int>::ptr exit_promise = new fc::promise<int>("UNIX Signal Handler");
 
