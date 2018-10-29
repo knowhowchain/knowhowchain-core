@@ -86,25 +86,11 @@ share_type power_required_for_finacing(share_type market_value)
     KHC_EASSERT(required_power<GRAPHENE_MAX_SHARE_SUPPLY,"required power(${required_power}) must less than ${max_supply}",
                 ("required_power",required_power)("max_supply",GRAPHENE_MAX_SHARE_SUPPLY));
     return required_power.to_uint64();
-    /*
-    if (minimum_financing_amount <= KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA)
-        return std::make_pair(KHC_POWER_GRADE_0_MIN_POWER, KHC_POWER_GRADE_0_MAX_POWER);
-    if (minimum_financing_amount <= KHC_POWER_GRADE_1_MAX_FUNDRAISING_QUOTA)
-        return std::make_pair(KHC_POWER_GRADE_1_MIN_POWER, KHC_POWER_GRADE_1_MAX_POWER);
-    if (minimum_financing_amount <= KHC_POWER_GRADE_2_MAX_FUNDRAISING_QUOTA)
-        return std::make_pair(KHC_POWER_GRADE_2_MIN_POWER, KHC_POWER_GRADE_2_MAX_POWER);
-    if (minimum_financing_amount <= KHC_POWER_GRADE_3_MAX_FUNDRAISING_QUOTA)
-        return std::make_pair(KHC_POWER_GRADE_3_MIN_POWER, KHC_POWER_GRADE_3_MAX_POWER);
-    if (minimum_financing_amount <= KHC_POWER_GRADE_4_MAX_FUNDRAISING_QUOTA)
-        return std::make_pair(KHC_POWER_GRADE_4_MIN_POWER, KHC_POWER_GRADE_4_MAX_POWER);
-    if (minimum_financing_amount <= KHC_POWER_GRADE_5_MAX_FUNDRAISING_QUOTA)
-        return std::make_pair(KHC_POWER_GRADE_5_MIN_POWER, KHC_POWER_GRADE_5_MAX_POWER);
-    return std::make_pair(KHC_POWER_GRADE_6_MIN_POWER, KHC_POWER_GRADE_6_MAX_POWER);
-    */
 }
 
 share_type convert_to_khd_amount(share_type max_supply, price core_exchange_rate,price khd_price)
 {
+    KHC_WASSERT(!khd_price.is_null(),"please set khd feed price first");
     asset max_amount(max_supply,core_exchange_rate.quote.asset_id);
     asset core_amount = max_amount * core_exchange_rate;
     asset khd_amount = core_amount * khd_price;
