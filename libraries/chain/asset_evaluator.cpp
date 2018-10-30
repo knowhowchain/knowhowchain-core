@@ -72,15 +72,16 @@ void_result asset_create_evaluator::do_evaluate( const asset_create_operation& o
        auto itr = assets_by_projasset_name.find(op.project_asset_opts->name);
        KHC_WASSERT(itr == assets_by_projasset_name.end(), "${prj_name} is already exists!", ("prj_name", op.project_asset_opts->name));
 
-       KHC_WASSERT(op.project_asset_opts->start_financing_block_num >= d.get_dynamic_global_properties().head_block_number,
-                   "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->start_financing_block_num)("height", d.get_dynamic_global_properties().head_block_number));
 
        if(op.project_asset_opts->financing_type == KHC_PUBLIC_OFFERING){
            state = asset_dynamic_data_object::project_state::about_to_start;
            FC_ASSERT( op.project_asset_opts->end_financing_time == op.project_asset_opts->start_financing_time + op.project_asset_opts->financing_cycle );
+           KHC_WASSERT(op.project_asset_opts->start_financing_block_num >= d.get_dynamic_global_properties().head_block_number,
+                       "The specified height ${sheight} is lower than the current height ${height}", ("sheight", op.project_asset_opts->start_financing_block_num)("height", d.get_dynamic_global_properties().head_block_number));
+
        }else{
-           state = asset_dynamic_data_object::project_state::project_in_progress;
-           FC_ASSERT( op.project_asset_opts->end_financing_time == op.project_asset_opts->start_financing_time + op.project_asset_opts->project_cycle );
+           state = asset_dynamic_data_object::project_state::project_in_progress;       
+           FC_ASSERT( op.project_asset_opts->end_project_time == op.project_asset_opts->start_project_time + op.project_asset_opts->project_cycle );
        }
    }
 
