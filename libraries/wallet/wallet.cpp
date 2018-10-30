@@ -1374,7 +1374,9 @@ public:
 
           KHC_WASSERT(project_asset_opts->project_cycle >= KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE &&
                           project_asset_opts->project_cycle <= KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE,
-                      "project_cycle must be in range (${min_proj_cycle}, ${max_proj_cycle})", ("min_proj_cycle", KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE)("max_proj_cycle", KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE));
+                      "project_cycle(${project_cycle}) must be in range (${min_proj_cycle}, ${max_proj_cycle})",
+                      ("project_cycle",project_asset_opts->project_cycle)("min_proj_cycle", KHC_PROJECT_ASSET_MIN_PROJECT_CYCLE)
+                      ("max_proj_cycle", KHC_PROJECT_ASSET_MAX_PROJECT_CYCLE));
           project_asset_opts->project_cycle *= g_khc_project_asset_project_cycle_unit;
 
           uint32_t head_block_number = get_dynamic_global_properties().head_block_number;
@@ -1391,10 +1393,10 @@ public:
 
               KHC_WASSERT( project_asset_opts->financing_cycle >= KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE &&
                            project_asset_opts->financing_cycle <= KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE,
-                          "financing_cycle must be in range (${min_finac_cycle}, ${max_finac_cycle})", ("min_finac_cycle", KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE)("max_finac_cycle", KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE)
-                          );
+                          "financing_cycle(${financing_cycle}) must be in range (${min_finac_cycle}, ${max_finac_cycle})",
+                           ("financing_cycle",project_asset_opts->financing_cycle)("min_finac_cycle", KHC_PROJECT_ASSET_MIN_FINANCING_CYCLE)
+                           ("max_finac_cycle", KHC_PROJECT_ASSET_MAX_FINANCING_CYCLE));
               project_asset_opts->financing_cycle *= g_khc_project_asset_financing_cycle_unit;
-
 
               if (project_asset_opts->start_financing_block_num == 0)
                   project_asset_opts->start_financing_block_num = head_block_number + 1;
@@ -1845,7 +1847,7 @@ public:
        tx.validate();
 
        return sign_transaction( tx, broadcast );
-    } FC_CAPTURE_AND_RETHROW( (owner_account)(broadcast) )}
+    } FC_CAPTURE_AND_RETHROW( (owner_account)(amount)(asset)(broadcast) )}
 
    signed_transaction claim_asset_investment(string owner_account,
                                        string asset,
