@@ -337,7 +337,7 @@ void_result claim_asset_investment_evaluator::do_evaluate( const claim_asset_inv
    KHC_WASSERT(asset_o.is_public_offering(),"asset must be a public offering type.");
    asset_dyn_data = &(d.get(asset_o.dynamic_asset_data_id));
    KHC_WASSERT(asset_dyn_data->state >= asset_dynamic_data_object::project_state::project_in_progress,"project is not financing end.");
-   KHC_WASSERT(asset_dyn_data->investment_confidential_supply > 0,"project issuer has not issue token at this time.")
+   KHC_WASSERT(asset_dyn_data->investment_confidential_supply > 0,"project issuer has not issue token at this time.");
 
    tokens = 0;
    const auto &idx = d.get_index_type<asset_investment_index>().indices().get<by_account>();
