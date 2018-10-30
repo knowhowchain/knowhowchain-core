@@ -29,32 +29,5 @@ extern uint64_t g_khc_project_asset_project_cycle_unit;
 #define KHC_SECOND_CLAIM_INVESTMENT_TATIO 30
 #define KHC_THIRD_CLAIM_INVESTMENT_TATIO 40
 
-/*
-#define KHC_POWER_GRADE_0_MAX_FUNDRAISING_QUOTA 1000
-#define KHC_POWER_GRADE_0_MIN_POWER 51 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_0_MAX_POWER 99 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-
-#define KHC_POWER_GRADE_1_MAX_FUNDRAISING_QUOTA 5000
-#define KHC_POWER_GRADE_1_MIN_POWER 100 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_1_MAX_POWER 499 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-
-#define KHC_POWER_GRADE_2_MAX_FUNDRAISING_QUOTA 20000
-#define KHC_POWER_GRADE_2_MIN_POWER 500 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_2_MAX_POWER 1999 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-
-#define KHC_POWER_GRADE_3_MAX_FUNDRAISING_QUOTA 100000
-#define KHC_POWER_GRADE_3_MIN_POWER 2000 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_3_MAX_POWER 4999 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-
-#define KHC_POWER_GRADE_4_MAX_FUNDRAISING_QUOTA 500000
-#define KHC_POWER_GRADE_4_MIN_POWER 5000 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_4_MAX_POWER 9999 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-
-#define KHC_POWER_GRADE_5_MAX_FUNDRAISING_QUOTA 1000000
-#define KHC_POWER_GRADE_5_MIN_POWER 10000 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_5_MAX_POWER 49999 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-
-//#define KHC_POWER_GRADE_6_MAX_FUNDRAISING_QUOTA int64_t(1000000000000000000ll)
-#define KHC_POWER_GRADE_6_MIN_POWER 50000 * graphene::chain::asset::scaled_precision(KHC_POWER_PRECISION_DIGITS)
-#define KHC_POWER_GRADE_6_MAX_POWER 0 //0 means No upper limit
-*/
+#define KHC_PRIVATE_OFFERING 0   // financing type : private offering
+#define KHC_PUBLIC_OFFERING 1    // financing type : public offering

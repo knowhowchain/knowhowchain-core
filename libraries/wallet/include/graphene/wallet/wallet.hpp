@@ -329,7 +329,7 @@ struct khcasset_data {
     uint64_t  financing_cycle=0;
 
     /// 0-private offering ; 1-public offering
-    uint8_t financing_type=0;
+    uint8_t financing_type=KHC_PRIVATE_OFFERING;
     
     share_type financing_current_supply;
     share_type financing_confidential_supply;

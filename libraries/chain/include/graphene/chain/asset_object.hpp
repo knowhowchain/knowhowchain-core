@@ -26,6 +26,7 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/global_fun.hpp>
 #include <graphene/db/generic_index.hpp>
+#include <graphene/khc/config.hpp>
 
 /**
  * @defgroup prediction_market Prediction Market
@@ -189,7 +190,7 @@ namespace graphene { namespace chain {
              KHC_WASSERT( is_project_asset(),
                         "Asset ${a} (${id}) is not a project asset.",
                         ("a",this->symbol)("id",this->id) );
-             return proj_options.financing_type == 1;
+             return proj_options.financing_type == KHC_PUBLIC_OFFERING;
          }
 
          template<class DB>

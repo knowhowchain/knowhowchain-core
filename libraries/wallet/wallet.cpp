@@ -1381,7 +1381,7 @@ public:
 
           uint32_t head_block_number = get_dynamic_global_properties().head_block_number;
           global_property_object global_property_ob = get_global_properties();
-          if(project_asset_opts->financing_type == 1){
+          if(project_asset_opts->financing_type == KHC_PUBLIC_OFFERING){
               idump((project_asset_opts->min_transfer_ratio)(project_asset_opts->max_transfer_ratio));
               KHC_WASSERT(project_asset_opts->min_transfer_ratio >= KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO,"min_transfer_ratio:${min_ratio} must be large than ${khc_min_ratio}",
                           ("min_ratio",project_asset_opts->min_transfer_ratio)("khc_min_ratio",KHC_PROJECT_ASSET_MIN_TRANSFER_RATIO));
@@ -1410,7 +1410,7 @@ public:
               project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->financing_cycle;
 
           }else{
-              project_asset_opts->financing_type = 0;
+              project_asset_opts->financing_type = KHC_PRIVATE_OFFERING;
               project_asset_opts->start_financing_block_num = head_block_number + 1;
               project_asset_opts->end_financing_block_num = project_asset_opts->start_financing_block_num + project_asset_opts->project_cycle / global_property_ob.parameters.block_interval;
               project_asset_opts->start_financing_time = time_point_sec(fc::time_point::now().time_since_epoch().to_seconds());
@@ -1875,8 +1875,9 @@ public:
    {try {
        account_object from_account = get_account(owner_account);
        asset_object asset_obj = get_asset(asset);
-       KHC_WASSERT(!asset_obj.is_market_issued());
-       KHC_WASSERT(asset_obj.issuer == from_account.get_id());
+       KHC_WASSERT(!asset_obj.is_market_issued(),"${a} can't be a smart asset", ("a", asset));
+       KHC_WASSERT(asset_obj.issuer == from_account.get_id(),"account${account} is not the issuer of asset${asset}",
+                   ("account",owner_account)("asset",asset));
 
        claim_bitasset_investment_operation claim_bitasset_investment_op;
        claim_bitasset_investment_op.account_id = from_account.id;
