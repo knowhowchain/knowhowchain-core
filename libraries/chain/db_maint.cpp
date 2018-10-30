@@ -142,7 +142,6 @@ void database::update_asset_power_status(const asset_object& asset_obj,bool burn
 void database::update_asset_project_states()
 {
     const auto& dpo = get_dynamic_global_properties();
-    auto& gp = get_global_properties();
 
     const auto& assets_by_symbol = get_index_type<asset_index>().indices().get<by_projasset_name>();
     auto itr = assets_by_symbol.upper_bound("");
@@ -160,10 +159,9 @@ void database::update_asset_project_states()
         }
 
         uint8_t state ;
-        auto project_diff = asset_obj.proj_options.project_cycle / gp.parameters.block_interval;
         if(asset_obj.is_public_offering()){
             auto end_of_financing_block_number = asset_obj.proj_options.end_financing_block_num;
-            auto end_of_project_block_number = end_of_financing_block_number + project_diff;
+            auto end_of_project_block_number = asset_obj.proj_options.end_project_block_num;
             if(dpo.head_block_number < asset_obj.proj_options.start_financing_block_num)
             {
                 if(asset_dynamic.state == asset_dynamic_data_object::project_state::about_to_start){
@@ -205,8 +203,7 @@ void database::update_asset_project_states()
                 state = asset_dynamic_data_object::project_state::project_end;
             }
         }else{
-            auto end_of_project_block_number = asset_obj.proj_options.start_financing_block_num + project_diff;
-            if(dpo.head_block_number >= end_of_project_block_number){
+            if(dpo.head_block_number >= asset_obj.proj_options.end_project_block_num){
                 state = asset_dynamic_data_object::project_state::project_end;
             }else{
                 continue;

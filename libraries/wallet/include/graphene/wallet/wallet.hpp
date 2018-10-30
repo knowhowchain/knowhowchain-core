@@ -325,6 +325,15 @@ struct khcasset_data {
     ///The height of end financing and staring project
     uint32_t end_financing_block_num= 0;
 
+    fc::time_point_sec  start_project_time;
+    fc::time_point_sec  end_project_time;
+
+    ///The height of starting project
+    uint32_t start_project_block_num= 0;
+
+    ///The height of end project
+    uint32_t end_project_block_num= 0;
+
     ///Up to 4 weeks
     uint64_t  financing_cycle=0;
 
@@ -1849,7 +1858,14 @@ FC_REFLECT( graphene::wallet::khcasset_data,
             (max_financing_amount)
             (start_financing_time)
             (end_financing_time)
-            (financing_cycle)
+            (start_financing_block_num)
+            (end_financing_block_num)
+            (start_project_time)
+            (end_project_time)
+            (start_project_block_num)
+            (end_project_block_num)
+            (financing_cycle)            
+            (financing_type)
             (financing_current_supply)
             (financing_confidential_supply)
             (state)

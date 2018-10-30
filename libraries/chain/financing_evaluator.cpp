@@ -90,6 +90,8 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
        d.modify(asset_obj, [&](asset_object& a) {
           a.proj_options.end_financing_block_num = curr_block_num;
           a.proj_options.end_financing_time = time_point_sec(fc::time_point::now());
+          a.proj_options.start_project_block_num = a.proj_options.end_financing_block_num;
+          a.proj_options.start_project_time = a.proj_options.end_financing_time;
        });
    }
 
@@ -282,20 +284,20 @@ void_result claim_bitasset_investment_evaluator::do_evaluate( const claim_bitass
 
    share_type claim_amount(0);
    if(dynamic_o->claim_times == 0){
-       auto first_claim_block = asset_o.proj_options.end_financing_block_num;
+       auto first_claim_block = asset_o.proj_options.start_project_block_num;
        KHC_WASSERT(dpo.head_block_number >= first_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",first_claim_block));
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_FIRST_CLAIM_INVESTMENT_RATIO / KHC_100_PERCENT).to_uint64();
        claim_times = dynamic_o->claim_times + 1;
    }else if(dynamic_o->claim_times == 1){
-       auto second_claim_block = asset_o.proj_options.end_financing_block_num + (project_diff/ 2);
+       auto second_claim_block = asset_o.proj_options.start_project_block_num + (project_diff/ 2);
        KHC_WASSERT(dpo.head_block_number >= second_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",second_claim_block));
 
        claim_amount =  (fc::uint128_t(dynamic_o->financing_confidential_supply.value) * KHC_SECOND_CLAIM_INVESTMENT_TATIO / KHC_100_PERCENT).to_uint64();
        claim_times = dynamic_o->claim_times + 1;
    }else{
-       auto end_claim_block = asset_o.proj_options.end_financing_block_num + project_diff;
+       auto end_claim_block = asset_o.proj_options.start_project_block_num + project_diff;
        KHC_WASSERT(dpo.head_block_number >= end_claim_block,"now_block(${block}),next claim block(${nblock})",
                    ("block",dpo.head_block_number)("nblock",end_claim_block));
 
