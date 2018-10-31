@@ -166,22 +166,22 @@ void_result issue_asset_to_investors_evaluator::do_evaluate( const issue_asset_t
    this->issue_amounts.swap(share_empty);
    std::for_each(range.first, range.second,
                  [&](const asset_investment_object &obj) {
-                     KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
-                     total_investment += obj.investment_khd_amount.amount;
-                     this->investment_objects.push_back(&obj);
-                     share_type issue_amount = (fc::uint128_t(total_issue.value) * obj.investment_khd_amount.amount.value / asset_dyn_data->financing_confidential_supply.value).to_uint64();
-                     this->issue_amounts.push_back(issue_amount);
-                     total_issue_tmp += issue_amount;
-                 });
+         KHC_WASSERT(is_authorized_asset(d, obj.investment_account_id(d), obj.investment_asset_id(d)));
+         total_investment += obj.investment_khd_amount.amount;
+         this->investment_objects.push_back(&obj);
+         share_type issue_amount = (fc::uint128_t(total_issue.value) * obj.investment_khd_amount.amount.value / asset_dyn_data->financing_confidential_supply.value).to_uint64();
+         this->issue_amounts.push_back(issue_amount);
+         total_issue_tmp += issue_amount;
+    });
 
    KHC_WASSERT(total_issue_tmp <= total_issue, "Financing failed, Calculated value：${total_to_issue}, total_issue: ${total_issue}.",
                ("total_to_issue", total_issue_tmp)("total_issue", total_issue));
-   issue_amounts[issue_amounts.size()] += (total_issue - total_issue_tmp);
+   issue_amounts[issue_amounts.size()-1] += (total_issue - total_issue_tmp);
 
    KHC_WASSERT(total_investment == asset_dyn_data->financing_confidential_supply, "The total amount of financing is not right.total_investment(${total_investment}) !=financing_confidential_supply(${confidential_supply})",
                ("total_investment", total_investment)("total_investment", asset_dyn_data->financing_confidential_supply));
    KHC_WASSERT((asset_dyn_data->current_supply + total_issue) <= investment_asset_object.options.max_supply,
-               "Exceeding the maximum supply current_supply($current_supply{}) + total_issue(${total_issue}) != max_supply(${max_supply})",
+               "Exceeding the maximum supply current_supply(${current_supply}) + total_issue(${total_issue}) != max_supply(${max_supply})",
                ("current_supply", asset_dyn_data->current_supply)("total_issue", total_issue)("max_supply", investment_asset_object.options.max_supply));
 
    return void_result();
