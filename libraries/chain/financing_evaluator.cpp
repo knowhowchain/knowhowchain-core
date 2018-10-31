@@ -52,7 +52,8 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    KHC_WASSERT(asset_obj.is_public_offering(),"asset must be a public offering type.");
 
    const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
-   //KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing); XJTODO status need wait maintain
+   KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing,"asset(state:${state}) not in financing",
+               ("state",asset_dyn_data->state));
 
    //amount
    KHC_WASSERT(asset_dyn_data->financing_current_supply < asset_obj.proj_options.max_financing_amount,
@@ -61,14 +62,12 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
                ("max_financing_amount",asset_obj.proj_options.max_financing_amount));
 
    const auto& dpo = d.get_dynamic_global_properties();
-   const auto& po = d.get_global_properties();
-   uint32_t start_block_num = asset_obj.proj_options.start_financing_block_num;
-   uint32_t end_block_num = asset_obj.proj_options.start_financing_block_num + (asset_obj.proj_options.financing_cycle/po.parameters.block_interval);
    uint32_t curr_block_num = dpo.head_block_number;
    //time
-   KHC_WASSERT(curr_block_num>=asset_obj.proj_options.start_financing_block_num&&curr_block_num<=end_block_num,
+   KHC_WASSERT(curr_block_num>=asset_obj.proj_options.start_financing_block_num&&curr_block_num<=asset_obj.proj_options.end_financing_block_num,
                "current block num(${curr_block_num}) need betweent [${start_block_num},${end_block_num}]",
-               ("curr_block_num",curr_block_num)("start_block_num",start_block_num)("end_block_num",end_block_num));
+               ("curr_block_num",curr_block_num)("start_block_num",asset_obj.proj_options.start_financing_block_num)
+               ("end_block_num",asset_obj.proj_options.end_financing_block_num));
 
    return void_result();
 } FC_CAPTURE_AND_RETHROW( (o) ) }
