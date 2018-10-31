@@ -1409,7 +1409,7 @@ public:
               project_asset_opts->start_financing_time = time_point_sec(diff * global_property_ob.parameters.block_interval + fc::time_point::now().time_since_epoch().to_seconds());
               project_asset_opts->end_financing_time = project_asset_opts->start_financing_time + project_asset_opts->financing_cycle;
 
-              project_asset_opts->start_project_block_num = project_asset_opts->end_financing_block_num;
+              project_asset_opts->start_project_block_num = project_asset_opts->end_financing_block_num + 1;
               project_asset_opts->end_project_block_num = project_asset_opts->start_project_block_num + project_asset_opts->project_cycle / global_property_ob.parameters.block_interval;
               project_asset_opts->start_project_time = project_asset_opts->end_financing_time;
               project_asset_opts->end_project_time = project_asset_opts->start_project_time + project_asset_opts->project_cycle;
@@ -1843,7 +1843,7 @@ public:
    {try {
        account_object from_account = get_account(owner_account);
        asset_object asset_obj = get_asset(asset);
-       KHC_WASSERT(!asset_obj.is_market_issued());
+       KHC_WASSERT(!asset_obj.is_market_issued(),"can't investment market-issued asset");
        KHC_WASSERT(asset_obj.id != asset_id_type(0),"can't investment ${asset}",("asset",GRAPHENE_SYMBOL));
 
        asset_investment_operation asset_investment_op;
@@ -3658,6 +3658,15 @@ khcasset_data wallet_api::get_khcasset_data(string asset_name_or_id) const
    khc_data.financing_current_supply = asset_dny_data.financing_current_supply;
    khc_data.financing_confidential_supply = asset_dny_data.financing_confidential_supply;
    khc_data.state = asset_dny_data.state;
+
+   const dynamic_global_property_object& dpo = my->_remote_db->get_dynamic_global_properties();
+   uint32_t curr_block_num = dpo.head_block_number;
+   if(asset_dny_data.state == asset_dynamic_data_object::project_state::about_to_start
+           && curr_block_num >= asset.proj_options.start_financing_block_num
+           && curr_block_num <= asset.proj_options.end_financing_block_num)
+   {
+        khc_data.state = asset_dynamic_data_object::project_state::financing;
+   }
 /*
    detail::type_list<decltype(asset), decltype(asset.proj_options), decltype(asset_dny_data)>
        list(asset, asset.proj_options, asset_dny_data);

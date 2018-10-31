@@ -52,8 +52,8 @@ void_result asset_investment_evaluator::do_evaluate( const asset_investment_oper
    KHC_WASSERT(asset_obj.is_public_offering(),"asset must be a public offering type.");
 
    const asset_dynamic_data_object* asset_dyn_data = &asset_obj.dynamic_asset_data_id(d);
-   KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing,"asset(state:${state}) not in financing",
-               ("state",asset_dyn_data->state));
+//   KHC_WASSERT(asset_dyn_data->state == asset_dynamic_data_object::project_state::financing,"asset(state:${state}) not in financing",
+//               ("state",asset_dyn_data->state));
 
    //amount
    KHC_WASSERT(asset_dyn_data->financing_current_supply < asset_obj.proj_options.max_financing_amount,
@@ -89,7 +89,7 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
        d.modify(asset_obj, [&](asset_object& a) {
           a.proj_options.end_financing_block_num = curr_block_num;
           a.proj_options.end_financing_time = time_point_sec(fc::time_point::now());
-          a.proj_options.start_project_block_num = a.proj_options.end_financing_block_num;
+          a.proj_options.start_project_block_num = a.proj_options.end_financing_block_num + 1;
           a.proj_options.start_project_time = a.proj_options.end_financing_time;
        });
    }
@@ -110,6 +110,8 @@ void_result asset_investment_evaluator::do_apply( const asset_investment_operati
         data.financing_confidential_supply += actual_investment_amount.amount;
         if(advance_end){
             data.state = asset_dynamic_data_object::project_state::project_in_progress;
+        }else if(data.state == asset_dynamic_data_object::project_state::about_to_start){
+            data.state = asset_dynamic_data_object::project_state::financing;
         }
    });
 
